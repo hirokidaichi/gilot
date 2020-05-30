@@ -38,6 +38,21 @@ One of the most reliable records of a software project's activity is the history
 
 ## gilot log (generate csv)
 
+最もシンプルな利用の仕方は、以下のようにリポジトリのディレクトリを指定して。出力をCSVファイルとして保存することです。
+
+    gilot log REPO > REPO.csv
+    gilot log REPO -o REPO.csv
+
+デフォルトの期間は半年間ですが、時間を指定することができます。
+
+    gilot log REPO --since 2020-01-20 -o REPO.csv
+    gilot log REPO --month 18 -o REPO.csv
+
+ローンチ後のサービスの安定を見たいときなど、期間指定をすることで、初期リリース時のコミットの影響を排除できます。
+
+    gilot log REPO --branch develop -o REPO.csv
+
+開発ブランチの様子や、ブランチごとの結果を見たいときなどのためにbranchオプションが使えます。デフォルトだと```origin/HEAD```が指定されています。これは、トランク中心での開発がどの程度できているかを見たいためです。
 
 
     usage: gilot log [-h] [-b BRANCH] [-o OUTPUT] [--since SINCE] [--month MONTH]
@@ -76,4 +91,11 @@ One of the most reliable records of a software project's activity is the history
 ![image](./sample/react.png)
 
 ### tensorflow/tensorflow
-![image](./sample/react.png)
+![image](./sample/tensorflow.png)
+
+### pytorch/pytorch
+![image](./sample/pytorch.png)
+
+### optuna/optuna
+![image](./sample/optuna.png)
+
