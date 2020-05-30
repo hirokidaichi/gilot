@@ -1,4 +1,5 @@
 
+import re
 import git
 import datetime
 import time
@@ -63,15 +64,23 @@ def lorenz(v):
         y.append(yi)
     return x, y
 
+def _ts_to_string(ts):
+    pattern = r"(\d+)([a-zA-Z])"
+    r = re.match(pattern,ts)
+    (r.group(1),r.group(2))
+    MAP = dict(W="Weeks",D="Days",M="Months",Y="Years")
+    unit = MAP[r.group(2).upper()]
+    count = r.group(1)
+    return f"{count} {unit}"
+
+
 def _in_sprint(df, timeslot="2W"):
     df_resampled = df.resample(timeslot).sum()
     df_resampled["team"] = df["author"].resample(timeslot).nunique()
     return df_resampled
 
 def _plot_gini(df, plt):
-    data = df.resample("2W").sum()
-    v = data.lines.values
-
+    v = df.lines.values
     bins, result = lorenz(v)
     gi = gini(v)
     plt.plot(bins, result, label="commit")
@@ -86,12 +95,13 @@ def _plot_gini(df, plt):
     plt.legend()
     pass
 
-def _plot_hist(df, plt):
+def _plot_hist(df, plt,ts):
     v = df.lines.values
+    timeslot = _ts_to_string(ts)
     plt.hist(v, bins=50)
-    plt.title("Histgram of Lines of Code in 2 Weeks", fontsize=TITLE_SIZE)
-    
-    plt.xlabel("Total Change in 2 Weeks")
+    plt.title(f"Histgram of Lines of Code in {timeslot}", fontsize=TITLE_SIZE)
+
+    plt.xlabel(f"Total Change in {timeslot}")
     plt.ylabel("Count")
 
 
@@ -134,7 +144,7 @@ def plot(df, timeslot='2W', output=False, name="[This Graph]"):
 
     # PlOT HIST
     plt.subplot(2, 2, 3)
-    _plot_hist(dfs,plt)
+    _plot_hist(dfs,plt,timeslot)
 
     # PLOT CODE
     plt.subplot(2, 2, 2)
