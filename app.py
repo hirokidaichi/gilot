@@ -11,6 +11,14 @@ from dateutil.relativedelta import relativedelta
 
 parser = argparse.ArgumentParser(description='''
 gilot is a tool for analyzing and visualizing git change logs
+
+simple way (1 liner using pipe)
+! gilot log REPO_DIR | gilot plot 
+
+2-phase way
+! gilot log REPO_DIR > repo.csv
+! gilot plot -i repo.csv -o graph.png
+
 ''')
 
 
@@ -20,7 +28,7 @@ def handle_log(args):
 
 def handle_plot(args):
     df = gilot.from_csvs(args.input)
-    gilot.plot(df,output=args.output,name=args.name)
+    gilot.plot(df,output=args.output,name=args.name,timeslot=args.timeslot)
 
 def handle_info(args):
     df = gilot.from_csvs(args.input)
@@ -48,19 +56,22 @@ def _type_repo(repo_dir):
 subparsers = parser.add_subparsers()
 
 # log コマンドの parser を作成
-parser_log = subparsers.add_parser('log', help=' see `log -h`')
+parser_log = subparsers.add_parser('log', help='make git log csv data/ see `log -h`')
 parser_log.add_argument('repo',
     type=_type_repo,
     help='REPO must be a root dir of git repogitry')
+
 parser_log.add_argument("-b", "--branch",
-    default = "origin/HEAD"
-)
+    default="origin/HEAD")
+    
 parser_log.add_argument("-o","--output",
     help="output filename like --output hoge.csv",
     default=sys.__stdout__)
+
 parser_log.add_argument("--since",
     help="DATE must be ISO format like 2020-01-01.",
     type=_type_date)
+
 parser_log.add_argument("--month",
     help="MONTH is how many months of log data to output. default is 6",
     default = _type_date_period(6),
@@ -69,12 +80,20 @@ parser_log.add_argument("--month",
 parser_log.set_defaults(handler=handle_log)
 
 # plot コマンドの parser を作成
-parser_plot = subparsers.add_parser('plot', help='see `log -h`')
+parser_plot = subparsers.add_parser('plot', help='plot graph using the csv file see `log -h`')
 parser_plot.add_argument('-i', "--input",
     nargs="*",
     default=[sys.__stdin__])
-parser_plot.add_argument('-o', "--output")
+
+parser_plot.add_argument('-t', "--timeslot",
+    help="resample period like 2W or 7D or 1M ",
+    default="2W")
+parser_plot.add_argument('-o', "--output",
+    default=False,
+    help="OUTPUT FILE e.g. "
+)
 parser_plot.add_argument("-n", "--name",
+    default="GIT LOG REPORT",
     help="name")
 parser_plot.set_defaults(handler=handle_plot)
 

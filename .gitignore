@@ -5,6 +5,8 @@ __pycache__/
 
 # C extensions
 *.so
+# Avoid including the secret info
+*.csv
 
 # Distribution / packaging
 .Python
