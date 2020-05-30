@@ -9,17 +9,18 @@ import argparse
 import gilot
 from dateutil.relativedelta import relativedelta
 
-parser = argparse.ArgumentParser(description='''
-gilot is a tool for analyzing and visualizing git change logs
+parser = argparse.ArgumentParser(description="""
+gilot is a tool for analyzing and visualizing git logs
 
-simple way (1 liner using pipe)
+1) simple way (1 liner using pipe)
 ! gilot log REPO_DIR | gilot plot 
 
-2-phase way
+2) 2-phase way
 ! gilot log REPO_DIR > repo.csv
 ! gilot plot -i repo.csv -o graph.png
 
-''')
+
+""",formatter_class=argparse.RawDescriptionHelpFormatter)
 
 
 def handle_log(args):
@@ -62,14 +63,14 @@ parser_log.add_argument('repo',
     help='REPO must be a root dir of git repogitry')
 
 parser_log.add_argument("-b", "--branch",
+    help= "target branch name. default 'origin/HEAD' ",
     default="origin/HEAD")
     
-parser_log.add_argument("-o","--output",
-    help="output filename like --output hoge.csv",
+parser_log.add_argument("-o","--output-csv",
     default=sys.__stdout__)
 
 parser_log.add_argument("--since",
-    help="DATE must be ISO format like 2020-01-01.",
+    help="SINCE must be ISO format like 2020-01-01.",
     type=_type_date)
 
 parser_log.add_argument("--month",
@@ -88,21 +89,14 @@ parser_plot.add_argument('-i', "--input",
 parser_plot.add_argument('-t', "--timeslot",
     help="resample period like 2W or 7D or 1M ",
     default="2W")
-parser_plot.add_argument('-o', "--output",
+parser_plot.add_argument('-o', "--output-image",
     default=False,
-    help="OUTPUT FILE e.g. "
+    help="OUTPUT FILE "
 )
 parser_plot.add_argument("-n", "--name",
     default="GIT LOG REPORT",
     help="name")
 parser_plot.set_defaults(handler=handle_plot)
-
-# info コマンドの parser を作成
-parser_info = subparsers.add_parser('info', help='see `log -h`')
-parser_info.add_argument('-i', "--input",
-    nargs="*",
-    default= [sys.__stdin__])
-parser_info.set_defaults(handler=handle_info)
 
 
 def main():
