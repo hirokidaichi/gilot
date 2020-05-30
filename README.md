@@ -18,12 +18,11 @@ One of the most reliable records of a software project's activity is the history
 
 ## Installation
 
-    pip install git+https://github.com/hirokidaichi/gilot``
-
+    pip install git+https://github.com/hirokidaichi/gilot
 
 ## Usage
 
-###  simple way (1 liner using pipe)
+### simple way (1 liner using pipe)
     gilot log REPO_DIR | gilot plot
 
 ### 2-phase way
@@ -31,10 +30,15 @@ One of the most reliable records of a software project's activity is the history
     gilot log REPO_DIR > repo.csv
     gilot plot -i repo.csv -o graph.png
 
-
 ## Command 
+``gilot`` is divided into two commands, ``log`` and ``plot`` .
++  ``log`` command generates a csv from the repository information
 
-## gilot log
++  ``plot``  command generates a graph image (or matplotlib window) from that csv.
+
+## gilot log (generate csv)
+
+
 
     usage: gilot log [-h] [-b BRANCH] [-o OUTPUT] [--since SINCE] [--month MONTH]
                     repo
@@ -50,7 +54,7 @@ One of the most reliable records of a software project's activity is the history
     --since SINCE         SINCE must be ISO format like 2020-01-01.
     --month MONTH         MONTH is how many months of log data to output.
                             default is 6
-## gilot plot
+## gilot plot (generate graph)
 
     usage: gilot plot [-h] [-i [INPUT [INPUT ...]]] [-t TIMESLOT] [-o OUTPUT]
                     [-n NAME]
