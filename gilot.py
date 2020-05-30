@@ -20,7 +20,7 @@ def dateformat(date) :
 
 def commit_to_dict(commit):
     # TODO 拡張子ごとにフィルタできたりしたほうがYAMLの編集とか入らないからいいだろうか。
-    return dict(date=dateformat(commit.authored_date),
+    return dict(date=dateformat(commit.committed_date),
         hexsha=commit.hexsha,  author=commit.author.name, **commit.stats.total)
 
 def log(repo, branch="origin/HEAD", since=datetime.date.today() - relativedelta(months=6)):
@@ -103,7 +103,7 @@ def _plot_team(df, plt):
     plt.plot(date,team,marker=".",label="commit authors")
     plt.plot(date, np.ones(len(team)) * mean, "--", label="mean")
     plt.xlim(date[0], date[-1])
-    plt.ylabel("Unique number of commited author")
+    plt.ylabel("Unique number of committed author")
     plt.legend()
 
 def _plot_code(df, plt):
