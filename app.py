@@ -66,7 +66,7 @@ parser_log.add_argument("-b", "--branch",
     help= "target branch name. default 'origin/HEAD' ",
     default="origin/HEAD")
     
-parser_log.add_argument("-o","--output-csv",
+parser_log.add_argument("-o","--output",
     default=sys.__stdout__)
 
 parser_log.add_argument("--since",
@@ -89,7 +89,7 @@ parser_plot.add_argument('-i', "--input",
 parser_plot.add_argument('-t', "--timeslot",
     help="resample period like 2W or 7D or 1M ",
     default="2W")
-parser_plot.add_argument('-o', "--output-image",
+parser_plot.add_argument('-o', "--output",
     default=False,
     help="OUTPUT FILE "
 )
