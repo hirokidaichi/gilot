@@ -7,7 +7,7 @@ __pycache__/
 *.so
 # Avoid including the secret info
 *.csv
-
+sample/repos/
 # Distribution / packaging
 .Python
 build/
