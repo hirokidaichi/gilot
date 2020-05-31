@@ -36,24 +36,24 @@ One of the most reliable records of a software project's activity is the history
 
 +  ``plot``  command generates a graph image (or matplotlib window) from that csv.
 
-## gilot log (generate csv)
-
-最もシンプルな利用の仕方は、以下のようにリポジトリのディレクトリを指定して。出力をCSVファイルとして保存することです。
+### gilot log (generate csv)
+The simplest way to use the ``gilot log`` command is to specify the repository directory as follows. This means saving the output as a CSV file.
 
     gilot log REPO > REPO.csv
     gilot log REPO -o REPO.csv
 
-デフォルトの期間は半年間ですが、時間を指定することができます。
+The default period is six months, but you can specify the time.
 
     gilot log REPO --since 2020-01-20 -o REPO.csv
     gilot log REPO --month 18 -o REPO.csv
 
-ローンチ後のサービスの安定を見たいときなど、期間指定をすることで、初期リリース時のコミットの影響を排除できます。
+By specifying a period of time, such as when you want to see the stability of the service after the launch, you can eliminate the impact of commits during the initial release.
 
     gilot log REPO --branch develop -o REPO.csv
 
-開発ブランチの様子や、ブランチごとの結果を見たいときなどのためにbranchオプションが使えます。デフォルトだと```origin/HEAD```が指定されています。これは、トランク中心での開発がどの程度できているかを見たいためです。
+You can use the branch option to see what the development branch looks like, or to see the results for each branch. By default, ``origin/HEAD`` is specified. This is because we want to see how well we can develop in a trunk-based way.
 
+All options are here
 
     usage: gilot log [-h] [-b BRANCH] [-o OUTPUT] [--since SINCE] [--month MONTH]
                     repo
@@ -69,7 +69,28 @@ One of the most reliable records of a software project's activity is the history
     --since SINCE         SINCE must be ISO format like 2020-01-01.
     --month MONTH         MONTH is how many months of log data to output.
                             default is 6
-## gilot plot (generate graph)
+### gilot plot (generate graph)
+
+The simplest way to use the ``gilot plot`` command is to take the CSV file output from the gilot log command as input and specify the name of the file you want to save as output, as shown below.
+
+
+    gilot plot -i TARGET.csv -o TARGET_REPORT.png
+    gilot plot --input TARGET.csv -o TARGET_REPORT.png
+
+Also, since the input from the standard input is also interpreted as a CSV, it can be connected to a pipe as shown below.
+
+
+    cat target.csv | gilot plot 
+    gilot repo . | gilot plot
+
+For example, if one team is working in a *multi-repository* services, you may want to know the activity of multiple repositories as a whole, instead of focusing on one repository. In this case, you can combine multiple inputs into a graph as follows.
+
+
+    gilot log repo-a > repo-a.csv
+    gilog log repo-b > repo-b.csv
+    gilot plot -i repo*.csv
+
+All options are here:
 
     usage: gilot plot [-h] [-i [INPUT [INPUT ...]]] [-t TIMESLOT] [-o OUTPUT]
                     [-n NAME]
@@ -99,3 +120,6 @@ One of the most reliable records of a software project's activity is the history
 ### optuna/optuna
 ![image](./sample/optuna.png)
 
+## As a package in python
+
+ 
