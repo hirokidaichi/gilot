@@ -24,7 +24,7 @@ gilot is a tool for analyzing and visualizing git logs
 
 
 def handle_log(args):
-    df = gilot.dataframe(args.repo, branch=args.branch, since=args.since or args.month)
+    df = gilot.from_repo(args.repo, branch=args.branch, since=args.since or args.month)
     df.to_csv(args.output)
 
 def handle_plot(args):
@@ -110,4 +110,5 @@ def main():
 
 
 if __name__ == "__main__":
+    gilot.hello()
     main()

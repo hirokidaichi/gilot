@@ -1,55 +1,19 @@
 
 import re
-import git
 import datetime
-import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 sns.set()
-from dateutil.relativedelta import relativedelta
-
-DF_NULL = pd.DataFrame([],columns = ["date","hexsha","author","insertions","deletions","lines","files"])
-DF_NULL.set_index("date", inplace=True)
 
 TITLE_SIZE = 15
 
-def dateformat(date) :
-    return datetime.datetime.fromtimestamp(date).strftime("%Y-%m-%d %H:%M:%S")
-
-def commit_to_dict(commit):
-    # TODO 拡張子ごとにフィルタできたりしたほうがYAMLの編集とか入らないからいいだろうか。
-    return dict(date=dateformat(commit.committed_date),
-        hexsha=commit.hexsha,  author=commit.author.name, **commit.stats.total)
-
-def log(repo, branch="origin/HEAD", since=datetime.date.today() - relativedelta(months=6)):
-    return [commit_to_dict(c) for c in repo.iter_commits(branch, since= since )]
-
-def _df_index(df):
-    df.date = pd.to_datetime(df.date)
-    df.set_index("date",inplace=True)
-    return df
-    
-def dataframe(r,**kwargs) :
-    logs = log(r, **kwargs)
-    df = pd.DataFrame.from_records(logs)
-    if (len(df) == 0):
-        return DF_NULL
-    return _df_index(df)
-
-def from_csv(r):
-    df = pd.read_csv(r)
-    return _df_index(df)
-
-def from_csvs(iolist):
-    return pd.concat([ from_csv(i) for i in iolist ])
 
 def gini(x):
     # Mean absolute difference
     mad = np.abs(np.subtract.outer(x, x)).mean()
-    # Relative mean absolute difference
     rmad = mad/np.mean(x)
     # Gini coefficient
     return 0.5 * rmad
@@ -67,7 +31,6 @@ def lorenz(v):
 def _ts_to_string(ts):
     pattern = r"(\d+)([a-zA-Z])"
     r = re.match(pattern,ts)
-    (r.group(1),r.group(2))
     MAP = dict(W="Weeks",D="Days",M="Months",Y="Years")
     unit = MAP[r.group(2).upper()]
     count = r.group(1)
@@ -98,7 +61,7 @@ def _plot_gini(df, plt):
 def _plot_hist(df, plt,ts):
     v = df.lines.values
     timeslot = _ts_to_string(ts)
-    plt.hist(v, bins=50)
+    plt.hist(v, bins=20)
     plt.title(f"Histgram of Lines of Code in {timeslot}", fontsize=TITLE_SIZE)
 
     plt.xlabel(f"Total Change in {timeslot}")
@@ -109,7 +72,7 @@ def _plot_team(df, plt):
     date = df.index.values   
     team = df["team"]
     mean = team.mean()
-    plt.title( f"Efficient Team Members  :{mean :.1f}" ,fontsize=TITLE_SIZE)
+    plt.title( f" Number of Actual Contributors  :{mean :.1f}" ,fontsize=TITLE_SIZE)
     plt.plot(date,team,marker=".",label="commit authors")
     plt.plot(date, np.ones(len(team)) * mean, "--", label="mean")
     plt.xlim(date[0], date[-1])

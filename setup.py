@@ -1,14 +1,17 @@
 from setuptools import setup
+from setuptools import find_packages
 
 setup(
-    install_requires=["GitPython","datetime","seaborn","pandas","numpy","matplotlib","argparse"],
+    install_requires=["GitPython", "datetime", "seaborn", "pandas", "numpy", "matplotlib", "argparse"],
+    packages=find_packages("src"),
+    package_dir={"": "src"},
     entry_points={
         "console_scripts": [
-            "gilot = app:main"
+            "gilot = gilot.app:main"
         ]
     },
     name="gilot",
-    version="0.1.0",
+    version="0.1.1",
     license="MIT LICENSE",
     description="a git log visual analyzer",
     author="hirokidaichi",
