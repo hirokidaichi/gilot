@@ -87,7 +87,7 @@ For example, if one team is working in a *multi-repository* services, you may wa
 
 
     gilot log repo-a > repo-a.csv
-    gilog log repo-b > repo-b.csv
+    gilot log repo-b > repo-b.csv
     gilot plot -i repo*.csv
 
 All options are here:
