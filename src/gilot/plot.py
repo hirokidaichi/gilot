@@ -85,10 +85,10 @@ def _plot_team(df, plt):
     date = df.index.values   
     team = df["team"]
     mean = team.mean()
-    plt.title( f" Number of Actual Contributors" ,fontsize=TITLE_SIZE)
+    plt.title( f" Number of Actual Authors" ,fontsize=TITLE_SIZE)
     plt.plot(date,team,marker=".",label="commit authors")
     plt.plot(date, np.ones(len(team)) * mean, "--", label="mean")
-    _plot_text(plt,f"mean = {mean :.1f} commiters/timeslot")
+    _plot_text(plt,f"mean = {mean :.1f} authors/timeslot")
     plt.xlim(date[0], date[-1])
     plt.ylabel("Unique number of committed author")
     plt.legend()
