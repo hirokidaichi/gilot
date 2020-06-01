@@ -11,7 +11,7 @@ setup(
         ]
     },
     name="gilot",
-    version="0.1.1",
+    version="0.1.2",
     license="MIT LICENSE",
     description="a git log visual analyzer",
     author="hirokidaichi",

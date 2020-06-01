@@ -18,6 +18,7 @@ def gini(x):
     # Gini coefficient
     return 0.5 * rmad
 
+
 def lorenz(v):
     x = np.linspace(0., 100., 21)
     total = float(np.sum(v))
@@ -60,21 +61,34 @@ def _plot_gini(df, plt):
 
 def _plot_hist(df, plt,ts):
     v = df.lines.values
+    median = np.median(v)
     timeslot = _ts_to_string(ts)
-    plt.hist(v, bins=20)
-    plt.title(f"Histgram of Lines of Code in {timeslot}", fontsize=TITLE_SIZE)
+    sns.distplot(v)
+    plt.xlim(0,)
 
-    plt.xlabel(f"Total Change in {timeslot}")
-    plt.ylabel("Count")
+    plt.title(f"Histgram of Code Output", fontsize=TITLE_SIZE)
+    _plot_text(plt,f"median={int(median) :,d} lines")
+    plt.ylabel("")
+    plt.xlabel(f"Code Output in {timeslot}")
+
+def _plot_text(plt,text):
+    ax = plt.gca()
+    plt.text(0.99,0.1,text,
+        horizontalalignment='right',
+        verticalalignment='top',
+        bbox=dict(facecolor='#ccc', alpha=0.5),
+        transform=ax.transAxes)
+    
 
 
 def _plot_team(df, plt):
     date = df.index.values   
     team = df["team"]
     mean = team.mean()
-    plt.title( f" Number of Actual Contributors  :{mean :.1f}" ,fontsize=TITLE_SIZE)
+    plt.title( f" Number of Actual Contributors" ,fontsize=TITLE_SIZE)
     plt.plot(date,team,marker=".",label="commit authors")
     plt.plot(date, np.ones(len(team)) * mean, "--", label="mean")
+    _plot_text(plt,f"mean = {mean :.1f} commiters/timeslot")
     plt.xlim(date[0], date[-1])
     plt.ylabel("Unique number of committed author")
     plt.legend()
@@ -83,10 +97,11 @@ def _plot_code(df, plt):
     date = df.index.values
     total_change = df.lines.sum()
     total_added = (df.insertions - df.deletions).sum()
-    plt.title(f"Code Output : change={total_change:,d},added={total_added:,d},",fontsize=TITLE_SIZE)
+    plt.title(f"Code Output",fontsize=TITLE_SIZE)
     plt.plot(date,df.lines,label="lines")
     plt.plot(date,df.insertions,color="g",label="insertions")
     plt.plot(date,df.deletions, color="r", label="deletions")
+    _plot_text(plt,f"change={total_change:,d}lines ,added={total_added:,d}lines")
     plt.xlim(date[0], date[-1])
     plt.ylabel("Lines")
     plt.fill_between(date,df.insertions,df.deletions,where = df.insertions >= df.deletions,color="g",alpha=0.5,interpolate=True)
