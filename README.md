@@ -31,10 +31,12 @@ One of the most reliable records of a software project's activity is the history
     gilot plot -i repo.csv -o graph.png
 
 ## Command 
-``gilot`` is divided into two commands, ``log`` and ``plot`` .
+``gilot`` has 3 commands, ``log`` and ``plot`` and ``info``
 +  ``log`` command generates a csv from the repository information
 
 +  ``plot``  command generates a graph image (or matplotlib window) from that csv.
+
++ ``info``  command, like the plot command, takes a csv file as input and outputs only JSON format statistical information.
 
 ### gilot log (generate csv)
 The simplest way to use the ``gilot log`` command is to specify the repository directory as follows. This means saving the output as a CSV file.
@@ -104,6 +106,86 @@ All options are here:
                             OUTPUT FILE
     -n NAME, --name NAME  name
 
+### gilot info (dump statistical infomation)
+
+``info``  command, like the plot command, takes a csv file as input and outputs only JSON format statistical information.
+
+
+    # gilot info -i sample/react.csv
+    {
+        "gini": 0.42222013847205725,
+        "output": {
+            "lines": 242999,
+            "added": 70765,
+            "refactor": 0.7087848098140321
+        },
+        "since": "2019-12-03T10:53:08.000000000",
+        "until": "2020-05-30T06:34:43.000000000",
+        "timeslot": "2 Weeks",
+        "insertions": {
+            "mean": 11205.857142857143,
+            "std": 10565.324647217372,
+            "min": 781.0,
+            "25%": 3788.75,
+            "50%": 8544.0,
+            "75%": 16761.25,
+            "max": 39681.0
+        },
+        "deletions": {
+            "mean": 6151.214285714285,
+            "std": 4437.0289466743825,
+            "min": 327.0,
+            "25%": 3397.0,
+            "50%": 5076.0,
+            "75%": 9333.75,
+            "max": 13477.0
+        },
+        "lines": {
+            "mean": 17357.071428571428,
+            "std": 14236.531424279776,
+            "min": 1108.0,
+            "25%": 7383.25,
+            "50%": 12860.0,
+            "75%": 26531.75,
+            "max": 52914.0
+        },
+        "files": {
+            "mean": 377.7857142857143,
+            "std": 271.95196933718574,
+            "min": 70.0,
+            "25%": 155.75,
+            "50%": 402.0,
+            "75%": 450.0,
+            "max": 1062.0
+        },
+        "authors": {
+            "mean": 13.357142857142858,
+            "std": 4.70036238958302,
+            "min": 4.0,
+            "25%": 10.0,
+            "50%": 15.0,
+            "75%": 16.0,
+            "max": 21.0
+        },
+        "addedlines": {
+            "mean": 5054.642857142857,
+            "std": 7742.596112089604,
+            "min": -1210.0,
+            "25%": 266.5,
+            "50%": 2062.5,
+            "75%": 5770.75,
+            "max": 26448.0
+        }
+    }
+Integration with ``jq`` command makes it easy to get only the information you need.
+
+### When only the Gini coefficient is required
+    # gilot info -i sample/react.csv | jq .gini
+    > 0.42222013847205725
+
+### If you want to find the total number of lines in all commits in a period
+
+    # gilot info -i sample/react.csv | jq .output.lines
 
 
 ## Example Output
@@ -119,6 +201,9 @@ All options are here:
 
 ### optuna/optuna
 ![image](./sample/optuna.png)
+
+### microsoft/TypeScript
+![image](./sample/TypeScript.png)
 
 ## As a package in python
 

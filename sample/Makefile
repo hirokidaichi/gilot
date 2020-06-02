@@ -1,4 +1,4 @@
-REPOS := react optuna tensorflow pytorch
+REPOS := react optuna tensorflow pytorch TypeScript
 
 TARGET := $(foreach r,${REPOS},$(r).png)
 CSVS := $(foreach r,${REPOS},$(r).csv)
