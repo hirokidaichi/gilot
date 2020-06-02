@@ -1,7 +1,3 @@
 
-#from . import gilot
-
-from .log import from_csv,from_csvs,from_repo,from_dir
-from .plot import plot
-
-
+from .log import from_csv, from_csvs, from_repo, from_dir  # NOQA
+from .plot import plot, info  # NOQA
