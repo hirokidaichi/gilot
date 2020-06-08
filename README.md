@@ -61,7 +61,7 @@ All options are here
                     repo
 
     positional arguments:
-    repo                  REPO must be a root dir of git repogitry
+    repo                  REPO must be a root dir of git repository
 
     optional arguments:
     -h, --help            show this help message and exit

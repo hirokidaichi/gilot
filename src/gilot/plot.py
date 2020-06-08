@@ -78,7 +78,7 @@ def _plot_text(plt, text):
     plt.text(0.99, 0.1, text,
              horizontalalignment='right',
              verticalalignment='top',
-             bbox=dict(facecolor='#ccc', alpha=0.5),
+             bbox=dict(facecolor='#cccccc', alpha=0.5),
              transform=ax.transAxes)
 
 

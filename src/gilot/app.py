@@ -54,7 +54,7 @@ def _type_repo(repo_dir):
     try:
         return git.Repo(repo_dir)
     except BaseException:
-        print(f"repo:{repo_dir} must be git repogitry\n")
+        print(f"repo:{repo_dir} must be git repository\n")
         parser.print_help()
         sys.exit(-1)
 
@@ -68,7 +68,7 @@ parser_log = subparsers.add_parser(
 parser_log.add_argument(
     'repo',
     type=_type_repo,
-    help='REPO must be a root dir of git repogitry')
+    help='REPO must be a root dir of git repository')
 
 parser_log.add_argument(
     "-b", "--branch",
