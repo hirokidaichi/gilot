@@ -19,7 +19,7 @@ gilot is a tool for analyzing and visualizing git logs
 ! gilot plot -i repo.csv -o graph.png
 
 
-""", formatter_class=argparse.RawDescriptionHelpFormatter)
+""", formatter_class=argparse.RawDescriptionHelpFormatter)  # type:ignore
 
 
 def handle_log(args):
@@ -46,8 +46,8 @@ def _type_date(date_str):
 
 
 def _type_date_period(months):
-    delta = relativedelta(months=int(months))
-    return datetime.date.today() - delta
+    delta = relativedelta(months=-int(months))
+    return datetime.date.today() + delta
 
 
 def _type_repo(repo_dir):

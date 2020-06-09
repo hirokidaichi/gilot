@@ -33,10 +33,7 @@ def commit_to_dict(commit):
         **commit.stats.total)
 
 
-def log(
-        repo,
-        branch="origin/HEAD",
-        since=datetime.date.today() - relativedelta(months=6)):
+def log(repo,branch="origin/HEAD",since=datetime.date.today() + relativedelta(months=-6)):
     return [commit_to_dict(c) for c in repo.iter_commits(branch, since=since)]
 
 
