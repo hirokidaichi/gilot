@@ -18,6 +18,9 @@ One of the most reliable records of a software project's activity is the history
 
 ## Installation
 
+just:
+    pip install gilot
+or 
     pip install git+https://github.com/hirokidaichi/gilot
 
 ## Usage

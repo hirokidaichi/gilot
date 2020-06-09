@@ -1,7 +1,9 @@
 [tool.poetry]
 name = "gilot"
-version = "0.1.3"
+version = "0.1.4"
 description = "a git log visual analyzer"
+readme = "README.md"
+repository = "https://github.com/hirokidaichi/gilot"
 authors = ["hirokidaichi <hirokidaichi@gmail.com>"]
 license = "MIT"
 
