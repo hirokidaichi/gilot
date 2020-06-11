@@ -29,19 +29,31 @@ class Duration:
     def since_text(self) -> str:
         return date_to_text(self.since)
 
+    def __str__(self) -> str:
+        return f"({self.since_text()} - {self.until_text()})"
+
     def until_text(self) -> str:
         if (self.until):
             return date_to_text(self.until)
         return "now"
 
     def delta(self) -> datetime.timedelta:
-        return (self.until or datetime.datetime.now()) - self.since
+        if(self.until and self.since):
+            return self.until - self.since
+        return (datetime.date.today()) - self.since
 
     @classmethod
     def months(cls:Type[Duration], months: int,*,since:Optional[str] = None) -> Duration:
-        delta = relativedelta(months=-int(months))
-        since_date = text_to_date(since) if(since) else datetime.date.today() + delta
-        return cls(until=None,since=since_date)
+        if(since is None):
+            # 今からnヶ月前　から　今　までの期間
+            delta = relativedelta(months=-int(months))
+            return cls(until=None,since=datetime.date.today() + delta)
+        # 指定時刻からnヶ月間
+        delta = relativedelta(months=int(months))
+        since_date = text_to_date(since)
+        until = since_date + delta
+
+        return cls(until=until,since=since_date)
 
     @classmethod
     def range(cls:Type[Duration],since: str, until: str) -> Duration:

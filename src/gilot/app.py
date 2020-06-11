@@ -20,6 +20,7 @@ gilot is a tool for analyzing and visualizing git logs
 
 
 def args_to_duration(args) -> Duration:
+
     if (args.since and args.until):
         return Duration.range(args.since, args.until)
     if (args.since and args.month):
