@@ -19,8 +19,10 @@ One of the most reliable records of a software project's activity is the history
 ## Installation
 
 just:
+
     pip install gilot
 or 
+
     pip install git+https://github.com/hirokidaichi/gilot
 
 ## Usage
@@ -72,8 +74,10 @@ All options are here
                             target branch name. default 'origin/HEAD'
     -o OUTPUT, --output OUTPUT
     --since SINCE         SINCE must be ISO format like 2020-01-01.
-    --month MONTH         MONTH is how many months of log data to output.
-                            default is 6
+    --until UNTIL         UNTIL must be ISO format like 2020-06-01.
+    --month MONTH         MONTH is how many months of log data to output. default is 6
+
+
 ### gilot plot (generate graph)
 
 The simplest way to use the ``gilot plot`` command is to take the CSV file output from the gilot log command as input and specify the name of the file you want to save as output, as shown below.
