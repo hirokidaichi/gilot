@@ -1,12 +1,9 @@
-import json
+
 import sys
-import datetime
-
-import git
+import json
 import argparse
-
 import gilot
-from dateutil.relativedelta import relativedelta
+from gilot import Duration
 
 parser = argparse.ArgumentParser(description="""
 gilot is a tool for analyzing and visualizing git logs
@@ -22,11 +19,24 @@ gilot is a tool for analyzing and visualizing git logs
 """, formatter_class=argparse.RawDescriptionHelpFormatter)  # type:ignore
 
 
+def args_to_duration(args) -> Duration:
+    if (args.since and args.until):
+        return Duration.range(args.since, args.until)
+    if (args.since and args.month):
+        return Duration.months(int(args.month),since=args.since)
+    if (args.since):
+        return Duration.from_now(args.since)
+    if (args.month):
+        return Duration.months(int(args.month))
+    return Duration.months(6)
+
+
 def handle_log(args):
-    df = gilot.from_repo(
+    duration = args_to_duration(args)
+    df = gilot.from_dir(
         args.repo,
         branch=args.branch,
-        since=args.since or args.month)
+        duration=duration)
     df.to_csv(args.output)
 
 
@@ -40,25 +50,6 @@ def handle_info(args):
     print(json.dumps(gilot.info(df), indent=4, sort_keys=False))
 
 
-# str -> date 型変換関数
-def _type_date(date_str):
-    return datetime.date.fromisoformat(date_str)
-
-
-def _type_date_period(months):
-    delta = relativedelta(months=-int(months))
-    return datetime.date.today() + delta
-
-
-def _type_repo(repo_dir):
-    try:
-        return git.Repo(repo_dir)
-    except BaseException:
-        print(f"repo:{repo_dir} must be git repository\n")
-        parser.print_help()
-        sys.exit(-1)
-
-
 subparsers = parser.add_subparsers()
 
 # log コマンドの parser を作成
@@ -67,7 +58,6 @@ parser_log = subparsers.add_parser(
 
 parser_log.add_argument(
     'repo',
-    type=_type_repo,
     help='REPO must be a root dir of git repository')
 
 parser_log.add_argument(
@@ -81,14 +71,16 @@ parser_log.add_argument(
 
 parser_log.add_argument(
     "--since",
-    help="SINCE must be ISO format like 2020-01-01.",
-    type=_type_date)
+    help="SINCE must be ISO format like 2020-01-01.")
+
+parser_log.add_argument(
+    "--until",
+    help="UNTIL must be ISO format like 2020-06-01.")
+
 
 parser_log.add_argument(
     "--month",
-    help="MONTH is how many months of log data to output. default is 6",
-    default=_type_date_period(6),
-    type=_type_date_period)
+    help="MONTH is how many months of log data to output. default is 6")
 
 parser_log.set_defaults(handler=handle_log)
 
