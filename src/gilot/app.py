@@ -86,7 +86,7 @@ parser_log.set_defaults(handler=handle_log)
 
 # plot コマンドの parser を作成
 parser_plot = subparsers.add_parser(
-    'plot', help='plot graph using the csv file see `log -h`')
+    'plot', help='plot graph using the csv file see `plot -h`')
 
 parser_plot.add_argument(
     '-i', "--input",
@@ -110,7 +110,7 @@ parser_plot.set_defaults(handler=handle_plot)
 
 # info コマンドの parser を作成
 parser_info = subparsers.add_parser(
-    'info', help='plot graph using the csv file see `log -h`')
+    'info', help='plot graph using the csv file see `info -h`')
 
 parser_info.add_argument(
     '-i', "--input",
