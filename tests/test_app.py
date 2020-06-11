@@ -1,6 +1,8 @@
-from gilot.app import parser,args_to_duration
-import sys
+
 import datetime
+import sys
+
+from gilot.app import parser,args_to_duration
 
 
 def test_log_repo():
