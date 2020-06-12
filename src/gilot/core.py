@@ -30,7 +30,9 @@ class Duration:
         return date_to_text(self.since)
 
     def __str__(self) -> str:
-        return f"({self.since_text()} - {self.until_text()})"
+        since_text = self.since_text()
+        until_text = self.until_text()
+        return f"({since_text} - {until_text})"
 
     def until_text(self) -> str:
         if (self.until):
@@ -121,7 +123,19 @@ class CommitRecord:
     def to_dict(self) -> dict:
         return asdict(self)
 
-    def filter_files(self,is_match_file:Callable[[str],bool]) -> CommitRecord:
+    def expand(self) -> List[dict]:
+        if (not self.files_json):
+            return [self.to_dict()]
+
+        date = self.date
+        hexsha = self.hexsha
+        author = self.author
+        file_info = json.loads(self.files_json)
+
+        return [dict(date=date,hexsha=hexsha,author=author,file_name=str(k),**v)
+                for k,v in file_info.items()]
+
+    def filter_files(self,is_match_file:Callable[[str],bool]) -> Optional[CommitRecord]:
         if (not self.files_json):
             return self
 
@@ -137,6 +151,9 @@ class CommitRecord:
                 deletions += v["deletions"]
                 lines += v["lines"]
                 files += 1
+
+        if(files == 0) :
+            return None
 
         self.insertions = insertions
         self.deletions = deletions
@@ -157,44 +174,53 @@ class CommitDataFrame(pd.DataFrame):
         df.date = pd.to_datetime(df.date)
         df.set_index("date", inplace=True)
         df.sort_index()
-        return df
+        return cls.up(df)
+
+    @classmethod
+    def up(cls, df: pd.DataFrame) -> CommitDataFrame:
+        return cls(df.to_numpy(),index=df.index,columns=df.columns)
 
     @classmethod
     def from_records(cls, commits: List[CommitRecord]) -> CommitDataFrame:
         return cls.from_dataframe(pd.DataFrame.from_records(
-            [commit.to_dict() for commit in commits]))
+            [commit.to_dict() for commit in commits if commit is not None]))
 
     @ classmethod
     def from_commits(cls,commits: List[git.Commit],*,full:bool = False) -> CommitDataFrame:
         return cls.from_records(
             [CommitRecord.compose(c, full=full) for c in commits])
 
+    def filter_files(self,is_match : Callable[[str],bool]) -> CommitDataFrame:
+        records = [cr.filter_files(is_match) for cr in self.to_records()]
+        filtered = [r for r in records if r is not None]
+
+        return CommitDataFrame.from_records(filtered)
+
+    def to_records(self) -> List[CommitRecord]:
+        def convert(index, row):
+            return CommitRecord(date=str(index),**row.to_dict())
+        return [convert(index,row) for index,row in self.iterrows()]
+
+    def expand_files(self) -> pd.DataFrame:
+        dics = [e for c in self.to_records()
+                for e in c.expand()]
+        df = pd.DataFrame.from_records(dics)
+        df.set_index("date")
+        return df
+
 
 def from_csv(csvFileName: str) -> CommitDataFrame:
-    df:pd.DataFrame = pd.read_csv(csvFileName)
-    return CommitDataFrame.from_dataframe(df)
+    return CommitDataFrame.from_dataframe(pd.read_csv(csvFileName))
 
 
 def from_csvs(csvFileNames: List[str]) -> CommitDataFrame:
-    return pd.concat([from_csv(i) for i in csvFileNames])
-
-
-def filter_files(df: CommitDataFrame, file_name_filter:Callable[[str],bool]) -> CommitDataFrame:
-
-    def convert(index, row):
-        cr = CommitRecord(date=str(index),**row.to_dict())
-        return cr.filter_files(file_name_filter)
-
-    return CommitDataFrame.from_records([convert(index,row) for index,row in df.iterrows()])
+    return CommitDataFrame.up(pd.concat([from_csv(i) for i in csvFileNames]))
 
 
 def from_dir(
-    dirName: str = "./",*,
-    branch: str = "origin/HEAD",
-    duration: Duration = DEFAULT_DURATION,
-    full : bool = False,
-
-
-) :
+        dirName: str = "./",*,
+        branch: str = "origin/HEAD",
+        duration: Duration = DEFAULT_DURATION,
+        full : bool = False) :
     commits = Repo.from_dir(dirName, branch=branch).commits(duration)
     return CommitDataFrame.from_commits(commits,full=full)

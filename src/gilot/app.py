@@ -5,7 +5,7 @@ import argparse
 from fnmatch import fnmatch
 import gilot
 from typing import Callable,List,Optional
-from gilot import Duration
+from gilot.core import Duration
 
 parser = argparse.ArgumentParser(description="""
 gilot is a tool for analyzing and visualizing git logs
@@ -22,7 +22,7 @@ gilot is a tool for analyzing and visualizing git logs
 
 
 def compose_filter(allow: Optional[List[str]], deny: Optional[List[str]]) -> Callable[[str], bool]:
-    allow_list = allow or []
+    allow_list = allow or ["*"]
     deny_list = deny or []
 
     def match(file_name: str) -> bool:
@@ -62,8 +62,8 @@ def handle_log(args):
 
 def handle_plot(args):
     df = gilot.from_csvs(args.input)
-    if (args.allow_files or args.deny_files):
-        df = gilot.filter_files(df,compose_filter(allow=args.allow_files,deny=args.ignore_files))
+    if (args.allow_files or args.ignore_files):
+        df = df.filter_files(compose_filter(allow=args.allow_files,deny=args.ignore_files))
 
     gilot.plot(df, output=args.output, name=args.name, timeslot=args.timeslot)
 
