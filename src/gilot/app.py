@@ -2,7 +2,9 @@
 import sys
 import json
 import argparse
+from fnmatch import fnmatch
 import gilot
+from typing import Callable,List,Optional
 from gilot import Duration
 
 parser = argparse.ArgumentParser(description="""
@@ -17,6 +19,21 @@ gilot is a tool for analyzing and visualizing git logs
 
 
 """, formatter_class=argparse.RawDescriptionHelpFormatter)  # type:ignore
+
+
+def compose_filter(allow: Optional[List[str]], deny: Optional[List[str]]) -> Callable[[str], bool]:
+    allow_list = allow or []
+    deny_list = deny or []
+
+    def match(file_name: str) -> bool:
+        # いずれかのallow条件にmatchするか
+        is_allowed = any(fnmatch(file_name, p) for p in allow_list)
+        # いずれかのdeny条件にmatchするか
+        is_denyed = any(fnmatch(file_name, p) for p in deny_list)
+        # 許可されており、拒否リストに含まれていない。
+        return (is_allowed and not is_denyed)
+
+    return match
 
 
 def args_to_duration(args) -> Duration:
@@ -37,12 +54,17 @@ def handle_log(args):
     df = gilot.from_dir(
         args.repo,
         branch=args.branch,
-        duration=duration)
+        duration=duration,
+        full=args.full
+    )
     df.to_csv(args.output)
 
 
 def handle_plot(args):
     df = gilot.from_csvs(args.input)
+    if (args.allow_files or args.deny_files):
+        df = gilot.filter_files(df,compose_filter(allow=args.allow_files,deny=args.ignore_files))
+
     gilot.plot(df, output=args.output, name=args.name, timeslot=args.timeslot)
 
 
@@ -78,6 +100,10 @@ parser_log.add_argument(
     "--until",
     help="UNTIL must be ISO format like 2020-06-01.")
 
+parser_log.add_argument(
+    "--full",
+    action="store_true",
+    help="UNTIL must be ISO format like 2020-06-01.")
 
 parser_log.add_argument(
     "--month",
@@ -93,6 +119,14 @@ parser_plot.add_argument(
     '-i', "--input",
     nargs="*",
     default=[sys.__stdin__])
+
+parser_plot.add_argument(
+    "--allow-files",
+    nargs="*")
+
+parser_plot.add_argument(
+    "--ignore-files",
+    nargs="*")
 
 parser_plot.add_argument(
     '-t', "--timeslot",
