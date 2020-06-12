@@ -103,7 +103,7 @@ parser_log.add_argument(
 parser_log.add_argument(
     "--full",
     action="store_true",
-    help="UNTIL must be ISO format like 2020-06-01.")
+    help="If this flag is enabled, detailed data including the commuted file name will be output.")
 
 parser_log.add_argument(
     "--month",
@@ -122,20 +122,28 @@ parser_plot.add_argument(
 
 parser_plot.add_argument(
     "--allow-files",
-    nargs="*")
+    nargs="*",
+    help="""
+    Specify the files to allow.
+    You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.""")
 
 parser_plot.add_argument(
     "--ignore-files",
-    nargs="*")
+    nargs="*",
+    help="""
+    Specifies files to ignore.
+    You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.""")
 
 parser_plot.add_argument(
     '-t', "--timeslot",
     help="resample period like 2W or 7D or 1M ",
     default="2W")
+
 parser_plot.add_argument(
     '-o', "--output",
     default=False,
     help="OUTPUT FILE ")
+
 parser_plot.add_argument(
     "-n", "--name",
     default="GIT LOG REPORT",
