@@ -73,6 +73,33 @@ def handle_info(args):
     print(json.dumps(gilot.info(df), indent=4, sort_keys=False))
 
 
+def handle_hotspot(args):
+    df = gilot.from_csvs(args.input)
+    result = gilot.hotspot(df.expand_files())
+    if(args.csv) :
+        result.to_csv(args.output)
+    else :
+        pretty_print_hotspot(result[:30])
+
+
+def pretty_print_hotspot(df) :
+    print("""
+------------------------------------------------------------
+    gilot hotspot ( https://github.com/hirokidaichi/gilot )
+------------------------------------------------------------
+    """)
+    targets = ["hotspot","commits","authors","file_name"]
+    columns_text = " ".join([f"{t:>8}" for t in targets])
+    print(columns_text)
+    for k,v in df.iterrows():
+
+        hotspot = "{:.2f}".format(v["hotspot"])
+        commits = "{:6d}".format(int(v["commits"]))
+        authors = "{:6d}".format(int(v["authors"]))
+        row = [hotspot,commits,authors,k]
+        print(" ".join([f"{c:>8}" for c in row]))
+
+
 subparsers = parser.add_subparsers()
 
 # log コマンドの parser を作成
@@ -166,6 +193,27 @@ parser_info.add_argument(
     default="2W")
 
 parser_info.set_defaults(handler=handle_info)
+
+
+# info コマンドの parser を作成
+parser_hotspot = subparsers.add_parser(
+    'hotspot', help='search hotpost files `info -h`')
+
+parser_hotspot.add_argument(
+    '-i', "--input",
+    nargs="*",
+    default=[sys.__stdin__])
+
+parser_hotspot.add_argument(
+    "--csv",
+    action="store_true",
+    help="dump csv")
+
+parser_hotspot.add_argument(
+    "-o", "--output",
+    default=sys.__stdout__)
+
+parser_hotspot.set_defaults(handler=handle_hotspot)
 
 
 def main():

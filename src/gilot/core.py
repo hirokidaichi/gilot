@@ -205,6 +205,7 @@ class CommitDataFrame(pd.DataFrame):
         dics = [e for c in self.to_records()
                 for e in c.expand()]
         df = pd.DataFrame.from_records(dics)
+        df.date = pd.to_datetime(df.date)
         df.set_index("date",inplace=True)
         df.sort_index()
         return df
