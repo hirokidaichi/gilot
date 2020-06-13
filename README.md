@@ -36,12 +36,14 @@ or
     gilot plot -i repo.csv -o graph.png
 
 ## Command 
-``gilot`` has 3 commands, ``log`` and ``plot`` and ``info``
+``gilot`` has 4 commands, ``log`` and ``plot`` and ``info``
 +  ``log`` command generates a csv from the repository information
 
 +  ``plot``  command generates a graph image (or matplotlib window) from that csv.
 
 + ``info``  command, like the plot command, takes a csv file as input and outputs only JSON format statistical information.
+
++ ``hotspot``  command displays the files that are likely to contain bugs in ranking. We judge that the most recently modified files are likely to contain bugs.( like ``bugspots``)
 
 ### gilot log (generate csv)
 The simplest way to use the ``gilot log`` command is to specify the repository directory as follows. This means saving the output as a CSV file.
@@ -60,10 +62,20 @@ By specifying a period of time, such as when you want to see the stability of th
 
 You can use the branch option to see what the development branch looks like, or to see the results for each branch. By default, ``origin/HEAD`` is specified. This is because we want to see how well we can develop in a trunk-based way.
 
+## --full option 
+
+Also, with the ``--full`` option, detailed information such as the committed file name and the number of lines will be output. It is used for verification including file names such as hotspot command and ignore-files/allow-files.
+
+    gilot log REPO --full | gilot plot --ignore-files "*.lock" "package.json"
+
+If you want to count so that a specific file is not included, use the --full option and --ignore-files together as follows.
+
+    gilot log REPO --full | gilot hotspot
+
+
 All options are here
 
-    usage: gilot log [-h] [-b BRANCH] [-o OUTPUT] [--since SINCE] [--month MONTH]
-                    repo
+    usage: gilot log [-h] [-b BRANCH] [-o OUTPUT] [--since SINCE] [--until UNTIL] [--month MONTH] [--full] repo
 
     positional arguments:
     repo                  REPO must be a root dir of git repository
@@ -76,6 +88,7 @@ All options are here
     --since SINCE         SINCE must be ISO format like 2020-01-01.
     --until UNTIL         UNTIL must be ISO format like 2020-06-01.
     --month MONTH         MONTH is how many months of log data to output. default is 6
+    --full                If this flag is enabled, detailed data including the commuted file name will be output.
 
 
 ### gilot plot (generate graph)
@@ -101,8 +114,7 @@ For example, if one team is working in a *multi-repository* services, you may wa
 
 All options are here:
 
-    usage: gilot plot [-h] [-i [INPUT [INPUT ...]]] [-t TIMESLOT] [-o OUTPUT]
-                    [-n NAME]
+    usage: gilot plot [-h] [-i [INPUT [INPUT ...]]] [-t TIMESLOT] [-o OUTPUT] [-n NAME] [--allow-files [ALLOW_FILES [ALLOW_FILES ...]]] [--ignore-files [IGNORE_FILES [IGNORE_FILES ...]]]
 
     optional arguments:
     -h, --help            show this help message and exit
@@ -112,6 +124,12 @@ All options are here:
     -o OUTPUT, --output OUTPUT
                             OUTPUT FILE
     -n NAME, --name NAME  name
+    --allow-files [ALLOW_FILES [ALLOW_FILES ...]]
+                            Specify the files to allow. You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.
+    --ignore-files [IGNORE_FILES [IGNORE_FILES ...]]
+                            Specifies files to ignore. You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.
+
+
 
 ### gilot info (dump statistical infomation)
 
@@ -194,6 +212,55 @@ Integration with ``jq`` command makes it easy to get only the information you ne
 
     # gilot info -i sample/react.csv | jq .output.lines
 
+All options are here :
+
+    usage: gilot info [-h] [-i [INPUT [INPUT ...]]] [-t TIMESLOT] [--allow-files [ALLOW_FILES [ALLOW_FILES ...]]] [--ignore-files [IGNORE_FILES [IGNORE_FILES ...]]]
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    -i [INPUT [INPUT ...]], --input [INPUT [INPUT ...]]
+    -t TIMESLOT, --timeslot TIMESLOT
+                            resample period like 2W or 7D or 1M
+    --allow-files [ALLOW_FILES [ALLOW_FILES ...]]
+                            Specify the files to allow. You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.
+    --ignore-files [IGNORE_FILES [IGNORE_FILES ...]]
+                            Specifies files to ignore. You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.
+## gilot hotspot 
+``hotspot``  command displays the files that are likely to contain bugs in ranking. We judge that the most recently modified files are likely to contain bugs.( like ``bugspots``)
+
+    gilot hotspot -i react-full.csv --ignore-files "*/__tests__/*" "*.lock" -n 10
+
+output 
+
+    ------------------------------------------------------------
+        gilot hotspot ( https://github.com/hirokidaichi/gilot )
+    ------------------------------------------------------------
+
+    hotspot  commits  authors file_name
+        8.81       29        4 packages/react-reconciler/src/ReactFiberWorkLoop.new.js
+        7.14       25        4 packages/react-reconciler/src/ReactFiberWorkLoop.old.js
+        7.01       44        3 packages/react-dom/src/events/DOMModernPluginEventSystem.js
+        5.50       44        8 packages/react-dom/src/client/ReactDOMHostConfig.js
+        4.85       29        8 scripts/rollup/bundles.js
+        4.47       17        5 packages/react-reconciler/src/ReactFiberBeginWork.new.js
+        3.73       17        5 packages/react-reconciler/src/ReactFiberCommitWork.new.js
+        3.32       13        4 packages/react-reconciler/src/ReactFiberHooks.new.js
+        3.28       17        5 packages/react-reconciler/src/ReactFiberCompleteWork.new.js
+        3.18       15        5 packages/react-reconciler/src/ReactFiberCommitWork.old.js
+
+All options are here :
+
+    usage: gilot hotspot [-h] [-i [INPUT [INPUT ...]]] [--csv] [-o OUTPUT] [--allow-files [ALLOW_FILES [ALLOW_FILES ...]]] [--ignore-files [IGNORE_FILES [IGNORE_FILES ...]]]
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    -i [INPUT [INPUT ...]], --input [INPUT [INPUT ...]]
+    --csv                 dump csv
+    -o OUTPUT, --output OUTPUT
+    --allow-files [ALLOW_FILES [ALLOW_FILES ...]]
+                            Specify the files to allow. You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.
+    --ignore-files [IGNORE_FILES [IGNORE_FILES ...]]
+                            Specifies files to ignore. You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.
 
 ## Example Output
 

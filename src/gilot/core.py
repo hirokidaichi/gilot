@@ -1,11 +1,11 @@
-
 from __future__ import annotations
 
 import git
 import datetime
+import json
 import pandas as pd
-from typing import Type,List,Optional
-from dataclasses import dataclass,asdict
+from typing import Type,List,Optional,Callable
+from dataclasses import dataclass,asdict,fields
 from dateutil.relativedelta import relativedelta
 
 
@@ -30,7 +30,9 @@ class Duration:
         return date_to_text(self.since)
 
     def __str__(self) -> str:
-        return f"({self.since_text()} - {self.until_text()})"
+        since_text = self.since_text()
+        until_text = self.until_text()
+        return f"({since_text} - {until_text})"
 
     def until_text(self) -> str:
         if (self.until):
@@ -67,8 +69,6 @@ class Duration:
 
 DEFAULT_DURATION = Duration.months(6)
 
-# def _type_date_period(months):
-
 
 @dataclass
 class Repo:
@@ -102,13 +102,13 @@ class CommitRecord:
     deletions :int
     lines:int
     files: int
-
-    def to_dict(self) -> dict:
-        return asdict(self)
+    files_json : Optional[str]
 
     @ classmethod
-    def from_commit(cls, commit: git.Commit) -> CommitRecord:
+    def compose(cls, commit: git.Commit,full : bool = False) -> CommitRecord:
         total = commit.stats.total
+        file_json = json.dumps(commit.stats.files) if(full) else None
+
         return cls(
             date=timestamp_to_date_text(commit.committed_date),
             hexsha=commit.hexsha,
@@ -116,59 +116,114 @@ class CommitRecord:
             insertions=total["insertions"],
             deletions=total["deletions"],
             lines=total["lines"],
-            files=total["files"]
+            files=total["files"],
+            files_json=file_json
         )
 
-    @classmethod
-    def from_commits(cls, commits: List[git.Commit]) -> List[CommitRecord]:
-        return [cls.from_commit(c) for c in commits]
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    def expand(self) -> List[dict]:
+        if (not self.files_json):
+            return [self.to_dict()]
+
+        date = self.date
+        hexsha = self.hexsha
+        author = self.author
+        file_info = json.loads(self.files_json)
+
+        return [dict(date=date,hexsha=hexsha,author=author,file_name=str(k),**v)
+                for k,v in file_info.items()]
+
+    def filter_files(self,is_match_file:Callable[[str],bool]) -> Optional[CommitRecord]:
+        if (not self.files_json):
+            return self
+
+        file_info = json.loads(self.files_json)
+        insertions = 0
+        deletions = 0
+        lines = 0
+        files = 0
+
+        for k,v in file_info.items():
+            if (is_match_file(str(k))):
+                insertions += v["insertions"]
+                deletions += v["deletions"]
+                lines += v["lines"]
+                files += 1
+
+        if(files == 0) :
+            return None
+
+        self.insertions = insertions
+        self.deletions = deletions
+        self.lines = lines
+        self.files = files
+        self.files_json = None
+        return self
 
 
 class CommitDataFrame(pd.DataFrame):
-    DF_NULL = pd.DataFrame(
-        [],
-        columns=[
-            "date",
-            "hexsha",
-            "author",
-            "insertions",
-            "deletions",
-            "lines",
-            "files"])
+    DF_NULL = pd.DataFrame([],columns=[i.name for i in fields(CommitRecord)])
     DF_NULL.set_index("date", inplace=True)
 
-    @classmethod
+    @ classmethod
     def from_dataframe(cls, df: pd.DataFrame) -> CommitDataFrame:
         if (len(df) == 0):
             return cls.DF_NULL
         df.date = pd.to_datetime(df.date)
         df.set_index("date", inplace=True)
         df.sort_index()
-        return df
+        return cls.up(df)
 
     @classmethod
-    def from_commits(cls, commits: List[CommitRecord]) -> CommitDataFrame:
-        return cls.from_dataframe(pd.DataFrame.from_records([c.to_dict() for c in commits]))
+    def up(cls, df: pd.DataFrame) -> CommitDataFrame:
+        return cls(df.to_numpy(),index=df.index,columns=df.columns)
+
+    @classmethod
+    def from_records(cls, commits: List[CommitRecord]) -> CommitDataFrame:
+        return cls.from_dataframe(pd.DataFrame.from_records(
+            [commit.to_dict() for commit in commits if commit is not None]))
+
+    @ classmethod
+    def from_commits(cls,commits: List[git.Commit],*,full:bool = False) -> CommitDataFrame:
+        return cls.from_records(
+            [CommitRecord.compose(c, full=full) for c in commits])
+
+    def filter_files(self,is_match : Callable[[str],bool]) -> CommitDataFrame:
+        records = [cr.filter_files(is_match) for cr in self.to_records()]
+        filtered = [r for r in records if r is not None]
+
+        return CommitDataFrame.from_records(filtered)
+
+    def to_records(self) -> List[CommitRecord]:
+        def convert(index, row):
+            return CommitRecord(date=str(index),**row.to_dict())
+        return [convert(index,row) for index,row in self.iterrows()]
+
+    def expand_files(self,is_match:Callable[[str],bool]) -> pd.DataFrame:
+        dics = [e for c in self.to_records()
+                for e in c.expand()
+                if is_match(e["file_name"])]
+        df = pd.DataFrame.from_records(dics)
+        df.date = pd.to_datetime(df.date)
+        df.set_index("date",inplace=True)
+        df.sort_index()
+        return df
 
 
 def from_csv(csvFileName: str) -> CommitDataFrame:
-    df:pd.DataFrame = pd.read_csv(csvFileName)
-    return CommitDataFrame.from_dataframe(df)
+    return CommitDataFrame.from_dataframe(pd.read_csv(csvFileName))
 
 
 def from_csvs(csvFileNames: List[str]) -> CommitDataFrame:
-    return pd.concat([from_csv(i) for i in csvFileNames])
-
-
-@dataclass
-class LoggerOption:
-    branch: str
+    return CommitDataFrame.up(pd.concat([from_csv(i) for i in csvFileNames]))
 
 
 def from_dir(
-    dirName: str = "./",*,
-    branch: str = "origin/HEAD",
-    duration: Duration = DEFAULT_DURATION,
-) :
+        dirName: str = "./",*,
+        branch: str = "origin/HEAD",
+        duration: Duration = DEFAULT_DURATION,
+        full : bool = False) :
     commits = Repo.from_dir(dirName, branch=branch).commits(duration)
-    return CommitDataFrame.from_commits(CommitRecord.from_commits(commits))
+    return CommitDataFrame.from_commits(commits,full=full)

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gilot"
-version = "0.1.6"
+version = "0.1.7"
 description = "a git log visual analyzer"
 readme = "README.md"
 repository = "https://github.com/hirokidaichi/gilot"
@@ -16,6 +16,7 @@ datetime = "^4.3"
 seaborn = "^0.10.1"
 argparse = "^1.4.0"
 matplotlib = "^3.2.1"
+python-Levenshtein = "^0.12.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"
