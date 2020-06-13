@@ -70,16 +70,23 @@ def handle_plot(args):
 
 def handle_info(args):
     df = gilot.from_csvs(args.input)
+    if (args.allow_files or args.ignore_files):
+        df = df.filter_files(compose_filter(allow=args.allow_files,deny=args.ignore_files))
+
     print(json.dumps(gilot.info(df), indent=4, sort_keys=False))
 
 
 def handle_hotspot(args):
     df = gilot.from_csvs(args.input)
-    result = gilot.hotspot(df.expand_files())
+    result = gilot.hotspot(
+        df.expand_files(
+            compose_filter(
+                allow=args.allow_files,
+                deny=args.ignore_files)))
     if(args.csv) :
         result.to_csv(args.output)
     else :
-        pretty_print_hotspot(result[:30])
+        pretty_print_hotspot(result[:args.num])
 
 
 def pretty_print_hotspot(df) :
@@ -128,13 +135,13 @@ parser_log.add_argument(
     help="UNTIL must be ISO format like 2020-06-01.")
 
 parser_log.add_argument(
+    "--month",
+    help="MONTH is how many months of log data to output. default is 6")
+
+parser_log.add_argument(
     "--full",
     action="store_true",
     help="If this flag is enabled, detailed data including the commuted file name will be output.")
-
-parser_log.add_argument(
-    "--month",
-    help="MONTH is how many months of log data to output. default is 6")
 
 parser_log.set_defaults(handler=handle_log)
 
@@ -146,20 +153,6 @@ parser_plot.add_argument(
     '-i', "--input",
     nargs="*",
     default=[sys.__stdin__])
-
-parser_plot.add_argument(
-    "--allow-files",
-    nargs="*",
-    help="""
-    Specify the files to allow.
-    You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.""")
-
-parser_plot.add_argument(
-    "--ignore-files",
-    nargs="*",
-    help="""
-    Specifies files to ignore.
-    You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.""")
 
 parser_plot.add_argument(
     '-t', "--timeslot",
@@ -175,6 +168,20 @@ parser_plot.add_argument(
     "-n", "--name",
     default="GIT LOG REPORT",
     help="name")
+
+parser_plot.add_argument(
+    "--allow-files",
+    nargs="*",
+    help="""
+    Specify the files to allow.
+    You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.""")
+
+parser_plot.add_argument(
+    "--ignore-files",
+    nargs="*",
+    help="""
+    Specifies files to ignore.
+    You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.""")
 
 parser_plot.set_defaults(handler=handle_plot)
 
@@ -192,6 +199,20 @@ parser_info.add_argument(
     help="resample period like 2W or 7D or 1M ",
     default="2W")
 
+parser_info.add_argument(
+    "--allow-files",
+    nargs="*",
+    help="""
+    Specify the files to allow.
+    You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.""")
+
+parser_info.add_argument(
+    "--ignore-files",
+    nargs="*",
+    help="""
+    Specifies files to ignore.
+    You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.""")
+
 parser_info.set_defaults(handler=handle_info)
 
 
@@ -205,6 +226,11 @@ parser_hotspot.add_argument(
     default=[sys.__stdin__])
 
 parser_hotspot.add_argument(
+    '-n', "--num",
+    type=int,
+    default=30)
+
+parser_hotspot.add_argument(
     "--csv",
     action="store_true",
     help="dump csv")
@@ -212,6 +238,20 @@ parser_hotspot.add_argument(
 parser_hotspot.add_argument(
     "-o", "--output",
     default=sys.__stdout__)
+
+parser_hotspot.add_argument(
+    "--allow-files",
+    nargs="*",
+    help="""
+    Specify the files to allow.
+    You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.""")
+
+parser_hotspot.add_argument(
+    "--ignore-files",
+    nargs="*",
+    help="""
+    Specifies files to ignore.
+    You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.""")
 
 parser_hotspot.set_defaults(handler=handle_hotspot)
 

@@ -201,9 +201,10 @@ class CommitDataFrame(pd.DataFrame):
             return CommitRecord(date=str(index),**row.to_dict())
         return [convert(index,row) for index,row in self.iterrows()]
 
-    def expand_files(self) -> pd.DataFrame:
+    def expand_files(self,is_match:Callable[[str],bool]) -> pd.DataFrame:
         dics = [e for c in self.to_records()
-                for e in c.expand()]
+                for e in c.expand()
+                if is_match(e["file_name"])]
         df = pd.DataFrame.from_records(dics)
         df.date = pd.to_datetime(df.date)
         df.set_index("date",inplace=True)

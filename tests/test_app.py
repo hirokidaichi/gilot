@@ -1,5 +1,4 @@
 
-import datetime
 import sys
 
 from gilot.app import parser,args_to_duration
@@ -50,3 +49,13 @@ def test_log_duration():
         ["log","./","--since","2019-01-01","--month","10"]))
     assert d.since_text() == "2019-01-01"
     assert d.until_text() == "2019-11-01"
+
+
+def test_hotspot_option():
+    a = parser.parse_args(["hotspot","--ignore-files","*.rb"])
+    assert a.ignore_files == ["*.rb"]
+    b = parser.parse_args(["hotspot","--allow-files","*.rb"])
+    assert b.allow_files == ["*.rb"]
+    c = parser.parse_args(["hotspot","-n","10","-i","input.csv"])
+    assert c.num == 10
+    assert c.input == ["input.csv"]
