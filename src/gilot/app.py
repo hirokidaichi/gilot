@@ -43,7 +43,7 @@ def args_to_duration(args) -> Duration:
     if (args.since and args.month):
         return Duration.months(int(args.month),since=args.since)
     if (args.since):
-        return Duration.from_now(args.since)
+        return Duration.months(6,since=args.since)
     if (args.month):
         return Duration.months(int(args.month))
     return Duration.months(6)
