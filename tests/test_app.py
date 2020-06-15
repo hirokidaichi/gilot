@@ -1,7 +1,16 @@
 
 import sys
-
+import os
+import shutil
+import pytest
 from gilot.app import parser,args_to_duration
+
+
+@pytest.fixture
+def tempdir():
+    os.makedirs("./temp/", exist_ok=True)
+    yield
+    shutil.rmtree("./temp/")
 
 
 def test_log_repo():
@@ -50,6 +59,11 @@ def test_log_duration():
     assert d.since_text() == "2019-01-01"
     assert d.until_text() == "2019-11-01"
 
+    d = args_to_duration(parser.parse_args(
+        ["log","./","--since","2019-01-01"]))
+    assert d.since_text() == "2019-01-01"
+    assert d.until_text() == "2019-07-01"
+
 
 def test_hotspot_option():
     a = parser.parse_args(["hotspot","--ignore-files","*.rb"])
@@ -59,3 +73,30 @@ def test_hotspot_option():
     c = parser.parse_args(["hotspot","-n","10","-i","input.csv"])
     assert c.num == 10
     assert c.input == ["input.csv"]
+
+
+def test_handlers(tempdir):
+    # log をえて、出力
+    log = parser.parse_args(["log", "./", "--full", "--output", "temp/_test.csv"])
+    assert log.handler
+    log.handler(log)
+    plot = parser.parse_args(
+        ["plot", "-i", "./temp/_test.csv", "--allow-files", "*.py", "--output", "temp/_test.png"])
+    assert plot.handler
+
+    plot.handler(plot)
+    info = parser.parse_args(
+        ["info", "-i", "./temp/_test.csv", "--allow-files", "*.py"])
+    assert info.handler
+    info.handler(plot)
+
+    hotspot = parser.parse_args(
+        ["hotspot", "-i", "./temp/_test.csv", "--allow-files", "*.py"])
+    assert hotspot.handler
+    hotspot.handler(hotspot)
+
+    hotspot2 = parser.parse_args(
+        ["hotspot", "-i", "./temp/_test.csv", "--ignore-files", "*.lock","--csv"])
+    assert hotspot2.handler
+    hotspot2.handler(hotspot2)
+    assert True

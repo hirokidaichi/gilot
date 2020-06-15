@@ -23,9 +23,6 @@ class Duration:
     since: datetime.date
     until: Optional[datetime.date]
 
-    def to_dict(self) -> dict:
-        return dict(since=self.since,until=self.until)
-
     def since_text(self) -> str:
         return date_to_text(self.since)
 
@@ -60,11 +57,6 @@ class Duration:
     @classmethod
     def range(cls:Type[Duration],since: str, until: str) -> Duration:
         return cls(since=text_to_date(since),until=text_to_date(until))
-
-    @classmethod
-    def from_now(cls: Type[Duration], since_text: str) -> Duration:
-        since = text_to_date(since_text)
-        return cls(until=None,since=since)
 
 
 DEFAULT_DURATION = Duration.months(6)
@@ -171,14 +163,15 @@ class CommitDataFrame(pd.DataFrame):
     def from_dataframe(cls, df: pd.DataFrame) -> CommitDataFrame:
         if (len(df) == 0):
             return cls.DF_NULL
-        df.date = pd.to_datetime(df.date)
-        df.set_index("date", inplace=True)
-        df.sort_index()
         return cls.up(df)
 
     @classmethod
     def up(cls, df: pd.DataFrame) -> CommitDataFrame:
-        return cls(df.to_numpy(),index=df.index,columns=df.columns)
+        s = cls(df.to_numpy(), index=df.index, columns=df.columns)
+        s["date"] = pd.to_datetime(s["date"])
+        s.set_index("date", inplace=True)
+        s.sort_index()
+        return s
 
     @classmethod
     def from_records(cls, commits: List[CommitRecord]) -> CommitDataFrame:
@@ -199,9 +192,10 @@ class CommitDataFrame(pd.DataFrame):
     def to_records(self) -> List[CommitRecord]:
         def convert(index, row):
             return CommitRecord(date=str(index),**row.to_dict())
-        return [convert(index,row) for index,row in self.iterrows()]
+        return [convert(index, row) for index, row in self.iterrows()]
 
-    def expand_files(self,is_match:Callable[[str],bool]) -> pd.DataFrame:
+    def expand_files(self, is_match: Optional[Callable[[str], bool]] = None) -> pd.DataFrame:
+        is_match = is_match if is_match else lambda x: True
         dics = [e for c in self.to_records()
                 for e in c.expand()
                 if is_match(e["file_name"])]
@@ -217,7 +211,8 @@ def from_csv(csvFileName: str) -> CommitDataFrame:
 
 
 def from_csvs(csvFileNames: List[str]) -> CommitDataFrame:
-    return CommitDataFrame.up(pd.concat([from_csv(i) for i in csvFileNames]))
+    df = pd.concat([pd.read_csv(i) for i in csvFileNames])
+    return CommitDataFrame.from_dataframe(df.drop_duplicates(subset="hexsha"))
 
 
 def from_dir(
