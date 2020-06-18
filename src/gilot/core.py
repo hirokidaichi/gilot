@@ -8,6 +8,8 @@ from typing import Type,List,Optional,Callable
 from dataclasses import dataclass,asdict,fields
 from dateutil.relativedelta import relativedelta
 
+from .filetracker import FileTracker
+
 
 def text_to_date(date_text:str) -> datetime.date:
     return datetime.date.fromisoformat(date_text)
@@ -197,8 +199,12 @@ class CommitDataFrame(pd.DataFrame):
     def expand_files(self, is_match: Optional[Callable[[str], bool]] = None) -> pd.DataFrame:
         is_match = is_match if is_match else lambda x: True
         dics = [e for c in self.to_records()
-                for e in c.expand()
-                if is_match(e["file_name"])]
+                for e in c.expand()]
+        ft = FileTracker.create([e["file_name"] for e in dics])
+        for e in dics:
+            e["file_name"] = ft.newest_name(e["file_name"])
+
+        dics = [e for e in dics if is_match(e["file_name"])]
         df = pd.DataFrame.from_records(dics)
         df.date = pd.to_datetime(df.date)
         df.set_index("date",inplace=True)
