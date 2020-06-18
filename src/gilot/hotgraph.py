@@ -72,7 +72,6 @@ def gen_commit_to_pattern(stop_retry: bool, timeout=10, max_retry=5, auto_increa
 
 def set_hotspot_point(g, df):
     h_df = hotspot(df)
-    print(h_df)
     for (n, d) in g.nodes(data=True):
         d["hotspot"] = h_df.loc[n, "hotspot"] if n in h_df.index else 0
 
