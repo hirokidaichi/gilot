@@ -99,4 +99,27 @@ def test_handlers(tempdir):
         ["hotspot", "-i", "./temp/_test.csv", "--ignore-files", "*.lock","--csv"])
     assert hotspot2.handler
     hotspot2.handler(hotspot2)
+
+    hotgraph = parser.parse_args(["hotgraph",
+                                  "-i",
+                                  "./temp/_test.csv",
+                                  "--ignore-files",
+                                  "*.lock",
+                                  "--output",
+                                  "./temp/hoge.png"])
+    assert hotgraph.handler
+    print(hotgraph)
+
+    hotgraph.handler(hotgraph)
+    hotgraph = parser.parse_args(["hotgraph",
+                                  "-i",
+                                  "./temp/_test.csv",
+                                  "--ignore-files",
+                                  "*.lock",
+                                  "--rank","1",
+                                  "--output",
+                                  "./temp/hoge.png"])
+    assert hotgraph.handler
+    print(hotgraph)
+    hotgraph.handler(hotgraph)
     assert True
