@@ -72,9 +72,9 @@ def gen_commit_to_pattern(stop_retry: bool, timeout=10, max_retry=5, auto_increa
 
 def set_hotspot_point(g, df):
     h_df = hotspot(df)
-
+    print(h_df)
     for (n, d) in g.nodes(data=True):
-        d["hotspot"] = h_df.loc[n, "hotspot"]
+        d["hotspot"] = h_df.loc[n, "hotspot"] if n in h_df.index else 0
 
 
 def set_page_rank(g):
@@ -103,11 +103,6 @@ def graph_node_size(g):
 
 def graph_node_color(g):
     return [d["partition_id"] for (n, d) in g.nodes(data=True)]
-
-
-def get_metrics(files):
-    metrics = sum(distance(a, b) for a, b in combinations(files, 2)) / len(files)
-    return (metrics,files)
 
 
 def hotgraph(df: pd.DataFrame, *,
@@ -165,7 +160,8 @@ def hotgraph(df: pd.DataFrame, *,
     plt.tight_layout(pad=0.1, w_pad=0)
     plt.axis("off")
 
-    if(output_file_name):
+    if (output_file_name):
+        logger.info(output_file_name)
         plt.savefig(output_file_name, dpi=150, bbox_inches='tight')
     else:
         plt.show()

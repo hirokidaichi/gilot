@@ -317,7 +317,7 @@ parser_hotgraph.add_argument(
 
 parser_hotgraph.add_argument(
     "-o", "--output",
-    default=sys.__stdout__)
+    default=False)
 
 
 add_file_filter_option(parser_hotgraph)
