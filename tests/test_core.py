@@ -49,7 +49,7 @@ def test_expander():
 
 def test_expander_with_filter():
     def is_match(file_name):
-        return fnmatch(file_name,"app.py")
+        return fnmatch(file_name,"*app.py")
     df = gilot.core.from_dir("./", full=True)
     import json
     for v in df["files_json"].values:
