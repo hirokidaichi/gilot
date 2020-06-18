@@ -29,4 +29,4 @@ def hotspot(df : pd.DataFrame) -> pd.DataFrame:
     by_file["commits"] = df.groupby("file_name").nunique()["hexsha"]
     by_file["edit_rate"] = by_file["insertions"] / by_file["lines"]
     result = by_file.sort_values("hotspot",ascending=False)
-    return result.loc[:, ['hotspot', 'commits', 'authors', 'edit_rate',"lines"]].copy()
+    return result.loc[:, ['hotspot', 'commits', 'authors', 'edit_rate', "lines"]].copy()

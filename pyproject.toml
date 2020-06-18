@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gilot"
-version = "0.1.8"
+version = "0.1.9"
 description = "a git log visual analyzer"
 readme = "README.md"
 repository = "https://github.com/hirokidaichi/gilot"
@@ -17,6 +17,10 @@ seaborn = "^0.10.1"
 argparse = "^1.4.0"
 matplotlib = "^3.2.1"
 python-Levenshtein = "^0.12.0"
+networkx = "^2.4"
+pyfpgrowth = "^1.0"
+python-louvain = "^0.14"
+timeout_decorator = "^0.4.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"
@@ -24,6 +28,7 @@ autopep8 = "^1.5.3"
 mypy = "^0.780"
 pytest = "^5.4.3"
 pytest-cov = "^2.10.0"
+jupyter = "^1.0.0"
 
 [tool.poetry.scripts]
 gilot = "gilot.app:main"
