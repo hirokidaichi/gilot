@@ -59,13 +59,20 @@ class FileTracker():
     @classmethod
     def create(cls, file_expressions: List[str]) -> FileTracker:
         track_map = dict()
-        for fe in file_expressions:
+        for fe in reversed(file_expressions):
             result = match(fe)
             if result:
                 before = result[0]
                 after = result[1]
                 logger.debug(f"expression: {fe}")
                 logger.debug(f"before {before} => after {after}")
+
                 track_map[before] = after
+                # A -> B ( A => B)
+                # B -> C ( A => B, B => C )
+                # C -> A ( [A => B], B => C, C => A ) delete A -> B
+                if after in track_map:
+                    logger.info(f"delete avoiding cyclic rename:{after}")
+                    del track_map[after]
 
         return cls(track_map=track_map)
