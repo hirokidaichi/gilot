@@ -1,4 +1,4 @@
-REPOS := react optuna pytorch TypeScript tensorflow
+REPOS := react optuna pytorch TypeScript tensorflow vscode
 
 TARGET := $(foreach r,${REPOS},$(r).png)
 HOTGRAPH := $(foreach r,${REPOS},$(r).hotgraph.png)
@@ -34,3 +34,10 @@ TypeScript.hotgraph.png:TypeScript.csv
 
 tensorflow.hotgraph.png:tensorflow.csv
 	gilot hotgraph -i $< --allow-files "tensorflow/python/*.py" --output $@
+
+vscode.hotgraph.png:vscode.csv
+	gilot hotgraph -i $< --allow-files "*.ts" --output $@
+
+
+%.hotgraph.png : %.csv
+	gilot hotgraph -i $< --output $@

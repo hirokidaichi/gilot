@@ -285,6 +285,11 @@ All options are here :
 ![image](./sample/TypeScript.hotgraph.png)
 
 
+### microsoft/vscode
+![image](./sample/vscode.png)
+![image](./sample/vscode.hotgraph.png)
+
+
 ## As a package in python
 
  
