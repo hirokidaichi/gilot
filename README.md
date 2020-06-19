@@ -5,7 +5,7 @@
 
 One of the most reliable records of a software project's activity is the history of the version control system. This information is then used to create graphs to visualize the state of the software development team in a mechanical way.
 
-"gilot plot"  creates four graphs.
+``gilot plot``  creates four graphs.
 
 - The first graph shows the bias in the amount of code changes for a given time slot as a Gini coefficient and a Lorentz curve. The closer the Gini coefficient is to 1, the more unequal it is, and the closer it is to 0, the more perfect equality it is an indicator of economics. It tends to go down when a project has stable agility, and the more volatile and planaristic the project, the closer it is to 1.
 
@@ -14,6 +14,9 @@ One of the most reliable records of a software project's activity is the history
 - The third graph shows the change in the amount of code changes per time slot. It is displayed in green when the total amount of codes is increasing and in red when the total amount of codes is decreasing.
 
 - The fourth graph shows the number of authors who committed per given time slot. The effective team size is estimated.
+ 
+ ``gilot hotgraph`` visualizes the hidden connections between files in a repository and allows you to see the hidden connections in the and refactoring. Assuming that there is a structural connection between the files committed at the same time, the Analyze the network structure. The "shopping cart" and "products" are often used as examples of association analysis, but in this case, we will use The "shopping cart" is "1 commit" and "products" is "modified files".
+
 
 
 
@@ -46,6 +49,10 @@ or
 + ``info``  command, like the plot command, takes a csv file as input and outputs only JSON format statistical information.
 
 + ``hotspot``  command displays the files that are likely to contain bugs in ranking. We judge that the most recently modified files are likely to contain bugs.( like ``bugspots``)
+
++ ``hotspot``  command displays the files that are likely to contain bugs in ranking. We judge that the most recently modified files are likely to contain bugs.( like ``bugspots``)
+
++ ``hotgraph`` command is able to visualize hidden file connections from a given CSV.
 
 ### gilot log (generate csv)
 The simplest way to use the ``gilot log`` command is to specify the repository directory as follows. This means saving the output as a CSV file.
@@ -264,6 +271,32 @@ All options are here :
     --ignore-files [IGNORE_FILES [IGNORE_FILES ...]]
                             Specifies files to ignore. You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.
 
+# gilot hotgraph
+ ``gilot hotgraph`` visualizes the hidden connections between files in a repository and allows you to see the hidden connections in the and refactoring. Assuming that there is a structural connection between the files committed at the same time, the Analyze the network structure. The "shopping cart" and "products" are often used as examples of association analysis, but in this case, we will use The "shopping cart" is "1 commit" and "products" is "modified files".
+
+    gilot hotgraph -i this.csv --allow-files "*.ts"
+
+
+![image](./sample/TypeScript.hotgraph.png)
+
+
+All options are here :
+
+    usage: gilot hotgraph [-h] [-v] [-i [INPUT [INPUT ...]]] [-r RANK] [--stop-retry] [--csv] [-o OUTPUT] [--allow-files [ALLOW_FILES [ALLOW_FILES ...]]]
+                        [--ignore-files [IGNORE_FILES [IGNORE_FILES ...]]]
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    -v, --verbose         increase log level
+    -i [INPUT [INPUT ...]], --input [INPUT [INPUT ...]]
+    -r RANK, --rank RANK
+    --stop-retry
+    --csv                 dump csv
+    -o OUTPUT, --output OUTPUT
+    --allow-files [ALLOW_FILES [ALLOW_FILES ...]]
+                            Specify the files to allow. You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.
+    --ignore-files [IGNORE_FILES [IGNORE_FILES ...]]
+                            Specifies files to ignore. You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.
 ## Example Output
 
 ### facebook/react
