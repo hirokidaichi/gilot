@@ -1,10 +1,11 @@
 # gilot
 ![image](./sample/react.png)
+![image](./sample/react.hotgraph.png)
 "gilot" is a tool to analyze and visualize git logs.
 
 One of the most reliable records of a software project's activity is the history of the version control system. This information is then used to create graphs to visualize the state of the software development team in a mechanical way.
 
-"gilot"  creates four graphs.
+"gilot plot"  creates four graphs.
 
 - The first graph shows the bias in the amount of code changes for a given time slot as a Gini coefficient and a Lorentz curve. The closer the Gini coefficient is to 1, the more unequal it is, and the closer it is to 0, the more perfect equality it is an indicator of economics. It tends to go down when a project has stable agility, and the more volatile and planaristic the project, the closer it is to 1.
 
@@ -21,6 +22,7 @@ One of the most reliable records of a software project's activity is the history
 just:
 
     pip install gilot
+
 or 
 
     pip install git+https://github.com/hirokidaichi/gilot
@@ -36,7 +38,7 @@ or
     gilot plot -i repo.csv -o graph.png
 
 ## Command 
-``gilot`` has 4 commands, ``log`` and ``plot`` and ``info``
+``gilot`` has 5 commands, ``log`` , ``plot`` , ``info`` , ``hotgraph`` and ``hotspot`` 
 +  ``log`` command generates a csv from the repository information
 
 +  ``plot``  command generates a graph image (or matplotlib window) from that csv.
@@ -267,17 +269,21 @@ All options are here :
 ### facebook/react
 ![image](./sample/react.png)
 
+![image](./sample/react.hotgraph.png)
+
 ### tensorflow/tensorflow
 ![image](./sample/tensorflow.png)
-
+![image](./sample/tensorflow.hotgraph.png)
 ### pytorch/pytorch
 ![image](./sample/pytorch.png)
-
+![image](./sample/pytorch.hotgraph.png)
 ### optuna/optuna
 ![image](./sample/optuna.png)
-
+![image](./sample/optuna.hotgraph.png)
 ### microsoft/TypeScript
 ![image](./sample/TypeScript.png)
+![image](./sample/TypeScript.hotgraph.png)
+
 
 ## As a package in python
 
