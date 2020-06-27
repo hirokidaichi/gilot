@@ -1,4 +1,5 @@
 from __future__ import annotations
+from .filetracker import FileTracker
 
 import git
 import datetime
@@ -7,8 +8,9 @@ import pandas as pd
 from typing import Type,List,Optional,Callable
 from dataclasses import dataclass,asdict,fields
 from dateutil.relativedelta import relativedelta
+from logging import getLogger
 
-from .filetracker import FileTracker
+logger = getLogger(__name__)
 
 
 def text_to_date(date_text:str) -> datetime.date:
@@ -87,6 +89,16 @@ def timestamp_to_date_text(timestamp: int) -> str:
     return datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
 
+def is_merge(commit: git.Commit) -> bool:
+    ret = (1 < len(commit.parents))
+    if ret :
+        logger.info(f"merge commit should be treated as 0 {commit}")
+    return ret
+
+
+EMPTY_TOTAL = dict(insertions=0, deletions=0, lines=0, files=0)
+
+
 @ dataclass
 class CommitRecord:
     date: str
@@ -99,8 +111,8 @@ class CommitRecord:
     files_json : Optional[str]
 
     @ classmethod
-    def compose(cls, commit: git.Commit,full : bool = False) -> CommitRecord:
-        total = commit.stats.total
+    def compose(cls, commit: git.Commit, full: bool = False) -> CommitRecord:
+        total = EMPTY_TOTAL if(is_merge(commit)) else commit.stats.total
         file_json = json.dumps(commit.stats.files) if(full) else None
 
         return cls(
