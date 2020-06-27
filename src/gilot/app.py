@@ -118,7 +118,7 @@ def handle_author(args) -> None:
     if (args.allow_files or args.ignore_files):
         df = df.filter_files(compose_filter(allow=args.allow_files,deny=args.ignore_files))
 
-    gilot.authors(df, output=args.output, name=args.name,num=args.num,only=args.only)
+    gilot.authors(df, output=args.output, name=args.name,top=args.top,only=args.only)
 
 
 def handle_hotgraph(args) -> None:
@@ -348,12 +348,12 @@ def add_author_option(parser):
         help="OUTPUT FILE ")
 
     parser.add_argument(
-        '-n', "--num",
+        '-t', "--top",
         type=int,
         default=10)
 
     parser.add_argument(
-        "--name",
+        '-n',"--name",
         default="--",
         help="name")
 

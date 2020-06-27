@@ -126,7 +126,7 @@ def test_handlers(tempdir):
                                 "./temp/_test.csv",
                                 "--ignore-files",
                                 "*.lock",
-                                "--num","1",
+                                "--top","1",
                                 "--output",
                                 "./temp/hoge.png"])
     assert author.handler

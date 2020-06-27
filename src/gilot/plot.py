@@ -181,8 +181,8 @@ def _top_authors(df,num):
     return df.author.value_counts()[:num].index.tolist()
 
 
-def _count_commits(df, num=15, only=None):
-    authors = only if only else _top_authors(df,num)
+def _count_commits(df, top=15, only=None):
+    authors = only if only else _top_authors(df,top)
     index = df.resample("1W").sum().index
     result = pd.DataFrame([],index=index , columns=[*authors,'Others'])
 
@@ -201,10 +201,10 @@ def _commit_ratio(df):
     return df.apply(ratio,axis=1)
 
 
-def authors(df, output=False, num=None, name="--", only=None):
+def authors(df, output=False, top=None, name="--", only=None):
     sns.set_style("darkgrid")
     plt.rcParams["font.family"] = "IPAGothic"
-    result = _count_commits(df, num=num, only=only)
+    result = _count_commits(df, top=top, only=only)
 
     fig = plt.figure(figsize=(16, 9))
     plt.suptitle(f"GIT LOG {name} AUTHORS REPORT created by gilot", fontsize=13, y=0.95, x=0.7)
