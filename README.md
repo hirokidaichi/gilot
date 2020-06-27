@@ -297,32 +297,43 @@ All options are here :
                             Specify the files to allow. You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.
     --ignore-files [IGNORE_FILES [IGNORE_FILES ...]]
                             Specifies files to ignore. You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.
+
+# gilot author
+TODO
+
+![image](./sample/TypeScript.hotgraph.png)
+
 ## Example Output
 
 ### facebook/react
 ![image](./sample/react.png)
-
 ![image](./sample/react.hotgraph.png)
+![image](./sample/react.author.png)
 
 ### tensorflow/tensorflow
 ![image](./sample/tensorflow.png)
 ![image](./sample/tensorflow.hotgraph.png)
+![image](./sample/tensorflow.author.png)
 ### pytorch/pytorch
 ![image](./sample/pytorch.png)
 ![image](./sample/pytorch.hotgraph.png)
+![image](./sample/pytorch.author.png)
 ### optuna/optuna
 ![image](./sample/optuna.png)
 ![image](./sample/optuna.hotgraph.png)
+![image](./sample/optuna.author.png)
+
 ### microsoft/TypeScript
 ![image](./sample/TypeScript.png)
 ![image](./sample/TypeScript.hotgraph.png)
-
+![image](./sample/TypeScript.author.png)
 
 ### microsoft/vscode
 ![image](./sample/vscode.png)
 ![image](./sample/vscode.hotgraph.png)
+![image](./sample/vscode.author.png)
 
 
-## As a package in python
+
 
  
