@@ -120,6 +120,14 @@ def test_handlers(tempdir):
                                   "--output",
                                   "./temp/hoge.png"])
     assert hotgraph.handler
-    print(hotgraph)
-    hotgraph.handler(hotgraph)
-    assert True
+
+    author = parser.parse_args(["author",
+                                "-i",
+                                "./temp/_test.csv",
+                                "--ignore-files",
+                                "*.lock",
+                                "--top","1",
+                                "--output",
+                                "./temp/hoge.png"])
+    assert author.handler
+    author.handler(author)

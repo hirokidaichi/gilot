@@ -1,9 +1,9 @@
 import re
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set()
 
 TITLE_SIZE = 15
 
@@ -129,8 +129,8 @@ def _plot_code(df, plt):
 
 
 def plot(df, timeslot='2W', output=False, name="[This Graph]"):
+    sns.set()
     suptitle = f"{name} : created by 'gilot'"
-
     dfs = _in_sprint(df, timeslot=timeslot)
     plt.figure(figsize=(16, 9))
     plt.tight_layout(pad=0.05, w_pad=0)
@@ -175,3 +175,55 @@ def info(df, timeslot="2W"):
         timeslot=_ts_to_string(timeslot),
         **dic
     )
+
+
+def _top_authors(df,num):
+    return df.author.value_counts()[:num].index.tolist()
+
+
+def _count_commits(df, top=15, only=None):
+    authors = only if only else _top_authors(df,top)
+    index = df.resample("1W").sum().index
+    result = pd.DataFrame([],index=index , columns=[*authors,'Others'])
+
+    for a in authors:
+        result[a] = df["hexsha"][df.author == a].resample("1w").nunique()
+
+    result["Others"] = df["hexsha"][~df.author.isin(authors)].resample("1W").nunique()
+
+    result.fillna(value=0,inplace=True)
+    return result
+
+
+def _commit_ratio(df):
+    def ratio(s):
+        return s / np.sum(s)
+    return df.apply(ratio,axis=1)
+
+
+def authors(df, output=False, top=None, name="--", only=None):
+    sns.set_style("darkgrid")
+    plt.rcParams["font.family"] = "IPAGothic"
+    result = _count_commits(df, top=top, only=only)
+
+    fig = plt.figure(figsize=(16, 9))
+    plt.suptitle(f"GIT LOG {name} AUTHORS REPORT created by gilot", fontsize=13, y=0.95, x=0.7)
+    gs = fig.add_gridspec(10, 10)
+
+    plt.tight_layout(pad=0.05, w_pad=0)
+
+    plt.subplot(gs[0:5,0:8])
+    plt.ylabel("number of commits")
+    plt.title("Changes in the number of commits (stack graph by author)")
+    result.plot.area(ax=plt.gca(), colormap="Spectral")
+    plt.legend(loc='upper left', bbox_to_anchor=(1.0, 1.01))
+    plt.xlabel("")
+    plt.subplot(gs[5:10,0:8])
+    plt.ylabel("commit ratio")
+    ratio = _commit_ratio(result)
+    ratio.plot.area(ax=plt.gca(), colormap="Spectral",legend=None)
+    plt.ylim(0,1)
+    if(output):
+        plt.savefig(output, dpi=150, bbox_inches='tight')
+    else:
+        plt.show()

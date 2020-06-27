@@ -112,6 +112,15 @@ def handle_hotspot(args) -> None:
         pretty_print_hotspot(result[:args.num])
 
 
+def handle_author(args) -> None:
+    init_logger(args)
+    df = gilot.from_csvs(args.input)
+    if (args.allow_files or args.ignore_files):
+        df = df.filter_files(compose_filter(allow=args.allow_files,deny=args.ignore_files))
+
+    gilot.authors(df, output=args.output, name=args.name,top=args.top,only=args.only)
+
+
 def handle_hotgraph(args) -> None:
     init_logger(args)
     df = gilot.from_csvs(args.input)
@@ -158,171 +167,230 @@ def add_file_filter_option(parser):
         You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.""")
 
 
+def add_author_filter_option(parser):
+    parser.add_argument(
+        "--allow-authors",
+        nargs="*",
+        help="""
+        Specify the files to allow.
+        You can specify more than one like 'src/*' '*.rb'. Only data with the --full flag is valid.""")
+
+    parser.add_argument(
+        "--ignore-authors",
+        nargs="*",
+        help="""
+        Specifies files to ignore.
+        You can specify more than one like 'dist/*' '*.gen.java'. Only data with the --full flag is valid.""")
+
+
+def add_log_option(parser):
+    """
+        gilot log コマンドのオプション
+    """
+    parser.add_argument(
+        'repo',
+        help='REPO must be a root dir of git repository')
+
+    parser.add_argument(
+        "-b", "--branch",
+        help="target branch name. default 'origin/HEAD' ",
+        default="origin/HEAD")
+
+    parser.add_argument(
+        "-o", "--output",
+        default=sys.__stdout__)
+
+    parser.add_argument(
+        "--since",
+        help="SINCE must be ISO format like 2020-01-01.")
+
+    parser.add_argument(
+        "--until",
+        help="UNTIL must be ISO format like 2020-06-01.")
+
+    parser.add_argument(
+        "--month",
+        help="MONTH is how many months of log data to output. default is 6")
+
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="If this flag is enabled, detailed data including the commuted file name will be output.")
+
+    parser.set_defaults(handler=handle_log)
+    return parser
+
+
+def add_plot_option(parser):
+    """
+        gilot plot コマンドのオプション
+    """
+    parser.add_argument(
+        '-i', "--input",
+        nargs="*",
+        default=[sys.__stdin__])
+
+    parser.add_argument(
+        '-t', "--timeslot",
+        help="resample period like 2W or 7D or 1M ",
+        default="2W")
+
+    parser.add_argument(
+        '-o', "--output",
+        default=False,
+        help="OUTPUT FILE ")
+
+    parser.add_argument(
+        "-n", "--name",
+        default="GIT LOG REPORT",
+        help="name")
+
+    add_file_filter_option(parser)
+    parser.set_defaults(handler=handle_plot)
+    return parser
+
+
+def add_info_option(parser):
+    """
+        gilot info コマンドのオプション
+    """
+    parser.add_argument(
+        '-i', "--input",
+        nargs="*",
+        default=[sys.__stdin__])
+
+    parser.add_argument(
+        '-t', "--timeslot",
+        help="resample period like 2W or 7D or 1M ",
+        default="2W")
+
+    add_file_filter_option(parser)
+
+    parser.set_defaults(handler=handle_info)
+    return parser
+
+
+def add_hotspot_option(parser):
+    """
+        gilot hotspot コマンドのオプション
+    """
+    parser.add_argument(
+        '-i', "--input",
+        nargs="*",
+        default=[sys.__stdin__])
+
+    parser.add_argument(
+        '-n', "--num",
+        type=int,
+        default=30)
+
+    parser.add_argument(
+        "--csv",
+        action="store_true",
+        help="dump csv")
+
+    parser.add_argument(
+        "-o", "--output",
+        default=sys.__stdout__)
+
+    add_file_filter_option(parser)
+
+    parser.set_defaults(handler=handle_hotspot)
+    return parser
+
+
+def add_hotgraph_option(parser):
+    """
+        gilot hotgraph コマンドのオプション
+    """
+    parser.add_argument(
+        '-i', "--input",
+        nargs="*",
+        default=[sys.__stdin__])
+
+    parser.add_argument(
+        '-r', "--rank",
+        type=int,
+        default=70)
+
+    # 10秒以上かかる処理だった場合に自動的に閾値を引き上げてリトライする。
+    parser.add_argument(
+        "--stop-retry",
+        action="store_true")
+
+    parser.add_argument(
+        "--csv",
+        action="store_true",
+        help="dump csv")
+
+    parser.add_argument(
+        "-o", "--output",
+        default=False)
+
+    add_file_filter_option(parser)
+
+    parser.set_defaults(handler=handle_hotgraph)
+    return parser
+
+
+def add_author_option(parser):
+    """
+        gilot authors コマンドのオプション
+    """
+    parser.add_argument(
+        '-i', "--input",
+        nargs="*",
+        default=[sys.__stdin__])
+
+    parser.add_argument(
+        '-o', "--output",
+        default=False,
+        help="OUTPUT FILE ")
+
+    parser.add_argument(
+        '-t', "--top",
+        type=int,
+        default=10)
+
+    parser.add_argument(
+        '-n',"--name",
+        default="--",
+        help="name")
+
+    parser.add_argument(
+        "--only",
+        nargs="*")
+
+    add_file_filter_option(parser)
+
+    parser.set_defaults(handler=handle_author)
+    return parser
+
+
 """
     gilot コマンドのオプション
 """
 
 subparsers = parser.add_subparsers()
 
-parser_log = subparsers.add_parser(
-    'log', help='make git log csv data/ see `log -h`')
-parser_plot = subparsers.add_parser(
-    'plot', help='plot graph using the csv file see `plot -h`')
-parser_info = subparsers.add_parser(
-    'info', help='info graph using the csv file see `info -h`')
-parser_hotspot = subparsers.add_parser(
-    'hotspot', help='search hotpost files `hotspot -h`')
-parser_hotgraph = subparsers.add_parser(
-    'hotgraph', help='plot hotpost network `hotgraph -h`')
 
+subparsers_list = [
+    add_log_option(subparsers.add_parser(
+        'log', help='make git log csv data/ see `log -h`')),
+    add_plot_option(subparsers.add_parser(
+        'plot', help='plot graph using the csv file see `plot -h`')),
+    add_info_option(subparsers.add_parser(
+        'info', help='info graph using the csv file see `info -h`')),
+    add_hotspot_option(subparsers.add_parser(
+        'hotspot', help='search hotpost files `hotspot -h`')),
+    add_hotgraph_option(subparsers.add_parser(
+        'hotgraph', help='plot hotpost network `hotgraph -h`')),
+    add_author_option(subparsers.add_parser(
+        'author', help='author hotpost network `author -h`')),
+]
 
-subparser_list = [parser_log, parser_plot, parser_info, parser_hotspot, parser_hotgraph]
-
-for p in subparser_list:
+for p in subparsers_list:
     add_logging_option(p)
-
-"""
-    gilot log コマンドのオプション
-"""
-
-parser_log.add_argument(
-    'repo',
-    help='REPO must be a root dir of git repository')
-
-parser_log.add_argument(
-    "-b", "--branch",
-    help="target branch name. default 'origin/HEAD' ",
-    default="origin/HEAD")
-
-parser_log.add_argument(
-    "-o", "--output",
-    default=sys.__stdout__)
-
-parser_log.add_argument(
-    "--since",
-    help="SINCE must be ISO format like 2020-01-01.")
-
-parser_log.add_argument(
-    "--until",
-    help="UNTIL must be ISO format like 2020-06-01.")
-
-parser_log.add_argument(
-    "--month",
-    help="MONTH is how many months of log data to output. default is 6")
-
-parser_log.add_argument(
-    "--full",
-    action="store_true",
-    help="If this flag is enabled, detailed data including the commuted file name will be output.")
-
-parser_log.set_defaults(handler=handle_log)
-
-"""
-    gilot plot コマンドのオプション
-"""
-
-parser_plot.add_argument(
-    '-i', "--input",
-    nargs="*",
-    default=[sys.__stdin__])
-
-parser_plot.add_argument(
-    '-t', "--timeslot",
-    help="resample period like 2W or 7D or 1M ",
-    default="2W")
-
-parser_plot.add_argument(
-    '-o', "--output",
-    default=False,
-    help="OUTPUT FILE ")
-
-parser_plot.add_argument(
-    "-n", "--name",
-    default="GIT LOG REPORT",
-    help="name")
-
-
-add_file_filter_option(parser_plot)
-
-parser_plot.set_defaults(handler=handle_plot)
-
-"""
-    gilot info コマンドのオプション
-"""
-parser_info.add_argument(
-    '-i', "--input",
-    nargs="*",
-    default=[sys.__stdin__])
-
-parser_info.add_argument(
-    '-t', "--timeslot",
-    help="resample period like 2W or 7D or 1M ",
-    default="2W")
-
-add_file_filter_option(parser_info)
-
-parser_info.set_defaults(handler=handle_info)
-
-"""
-    gilot hotspot コマンドのオプション
-"""
-
-parser_hotspot.add_argument(
-    '-i', "--input",
-    nargs="*",
-    default=[sys.__stdin__])
-
-parser_hotspot.add_argument(
-    '-n', "--num",
-    type=int,
-    default=30)
-
-parser_hotspot.add_argument(
-    "--csv",
-    action="store_true",
-    help="dump csv")
-
-parser_hotspot.add_argument(
-    "-o", "--output",
-    default=sys.__stdout__)
-
-add_file_filter_option(parser_hotspot)
-
-
-parser_hotspot.set_defaults(handler=handle_hotspot)
-
-"""
-    gilot hotgraph コマンドのオプション
-"""
-
-parser_hotgraph.add_argument(
-    '-i', "--input",
-    nargs="*",
-    default=[sys.__stdin__])
-
-parser_hotgraph.add_argument(
-    '-r', "--rank",
-    type=int,
-    default=70)
-
-# 10秒以上かかる処理だった場合に自動的に閾値を引き上げてリトライする。
-parser_hotgraph.add_argument(
-    "--stop-retry",
-    action="store_true")
-
-parser_hotgraph.add_argument(
-    "--csv",
-    action="store_true",
-    help="dump csv")
-
-parser_hotgraph.add_argument(
-    "-o", "--output",
-    default=False)
-
-
-add_file_filter_option(parser_hotgraph)
-
-parser_hotgraph.set_defaults(handler=handle_hotgraph)
 
 
 def main():
