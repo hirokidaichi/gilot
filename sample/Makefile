@@ -2,12 +2,13 @@ REPOS := react optuna pytorch TypeScript tensorflow vscode
 
 TARGET := $(foreach r,${REPOS},$(r).png)
 HOTGRAPH := $(foreach r,${REPOS},$(r).hotgraph.png)
+AUTHORS := $(foreach r,${REPOS},$(r).author.png)
 CSVS := $(foreach r,${REPOS},$(r).csv)
 
 .PHONY: all
 all: png
 
-png: $(TARGET) $(HOTGRAPH)
+png: $(TARGET) $(HOTGRAPH) $(AUTHORS)
 
 csv: $(CSVS)
 
@@ -41,3 +42,6 @@ vscode.hotgraph.png:vscode.csv
 
 %.hotgraph.png : %.csv
 	gilot hotgraph -i $< --output $@
+
+%.author.png : %.csv
+	gilot author -i $< --output $@ --name "$*"
