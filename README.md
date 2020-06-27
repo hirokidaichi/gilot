@@ -301,7 +301,7 @@ All options are here :
 # gilot author
 TODO
 
-![image](./sample/TypeScript.hotgraph.png)
+![image](./sample/TypeScript.author.png)
 
 ## Example Output
 
