@@ -9,7 +9,6 @@ from typing import Callable, List, Optional
 
 import gilot
 from gilot.core import Duration
-
 logger = getLogger(__name__)
 
 parser = argparse.ArgumentParser(description="""
@@ -85,7 +84,6 @@ def handle_plot(args) -> None:
     df = gilot.from_csvs(args.input)
     if (args.allow_files or args.ignore_files):
         df = df.filter_files(compose_filter(allow=args.allow_files,deny=args.ignore_files))
-
     gilot.plot(df, output=args.output, name=args.name, timeslot=args.timeslot)
 
 

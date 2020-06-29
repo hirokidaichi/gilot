@@ -100,7 +100,7 @@ def _plot_code(df, plt):
     total_change = df.lines.sum()
     total_added = (df.insertions - df.deletions).sum()
     refactor = 1 - total_added / total_change
-    plt.title("Code Output", fontsize=TITLE_SIZE)
+    plt.title("Code Output and Productivity", fontsize=TITLE_SIZE)
     plt.plot(date, df.lines, label="lines")
     plt.plot(date, df.insertions, color="g", label="insertions")
     plt.plot(date, df.deletions, color="r", label="deletions")
@@ -126,6 +126,33 @@ def _plot_code(df, plt):
         alpha=0.5,
         interpolate=True)
     plt.legend()
+    _plot_productivity(df,plt)
+
+
+def _plot_productivity(df,plt):
+    time = 0.5  # 2 weeks mostly 0.5 months
+    beta = 0.3
+    df["effort"] = df["authors"] * time
+    effort = df["effort"]
+    s_time = time ** (4 / 3)
+    s_effort = (effort / beta)**(1 / 3)
+    s_size = df["lines"] / 2 * 0.7
+    prod = s_size / (s_effort * s_time)
+    level = prod_to_level(prod)
+    max_level = int(level.max() + 3)
+    df["level"] = level.rolling(4,center=True).mean()
+    ax = plt.gca()
+    ax2 = ax.twinx()
+    ax2.grid(False)
+    date = df.index.values
+    ax2.plot(date,df["level"],color="gray",linestyle="--",marker="x")
+    ax2.set_ylim([0, max_level])
+
+
+def prod_to_level(prod) :
+    a = 600.7669
+    b = 1.272067
+    return np.log(prod / a) / np.log(b)
 
 
 def plot(df, timeslot='2W', output=False, name="[This Graph]"):
