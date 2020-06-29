@@ -136,11 +136,11 @@ def _plot_productivity(df,plt):
     effort = df["effort"]
     s_time = time ** (4 / 3)
     s_effort = (effort / beta)**(1 / 3)
-    s_size = df["lines"] / 2 * 0.7
+    s_size = np.maximum(df["insertions"] - df["deletions"],df["lines"] / 2) * 0.7
     prod = s_size / (s_effort * s_time)
     level = prod_to_level(prod)
     max_level = int(level.max() + 3)
-    df["level"] = level.rolling(4,center=True).mean()
+    df["level"] = level.rolling(3,center=True).mean()
     ax = plt.gca()
     ax2 = ax.twinx()
     ax2.grid(False)
@@ -152,7 +152,7 @@ def _plot_productivity(df,plt):
 def prod_to_level(prod) :
     a = 600.7669
     b = 1.272067
-    return np.log(prod / a) / np.log(b)
+    return np.maximum(np.log(prod / a) / np.log(b),0)
 
 
 def plot(df, timeslot='2W', output=False, name="[This Graph]"):
