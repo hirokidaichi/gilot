@@ -96,9 +96,6 @@ def is_merge(commit: git.Commit) -> bool:
     return ret
 
 
-EMPTY_TOTAL = dict(insertions=0, deletions=0, lines=0, files=0)
-
-
 @ dataclass
 class CommitRecord:
     date: str
@@ -112,8 +109,12 @@ class CommitRecord:
 
     @ classmethod
     def compose(cls, commit: git.Commit, full: bool = False) -> CommitRecord:
-        total = EMPTY_TOTAL if(is_merge(commit)) else commit.stats.total
-        file_json = json.dumps(commit.stats.files) if(full) else None
+        if is_merge(commit):
+            total = dict(insertions=0, deletions=0, lines=0, files=0)
+            file_json = dict() if full else None
+        else:
+            total = commit.stats.total
+            file_json = json.dumps(commit.stats.files) if full else None
 
         return cls(
             date=timestamp_to_date_text(commit.committed_date),
