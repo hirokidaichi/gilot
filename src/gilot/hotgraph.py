@@ -29,9 +29,10 @@ def search_threshold(df,rank=70) -> int:
     return vc.values[-1]
 
 
-def short_name(path):
+def short_name(path, newline):
     subdirname = os.path.basename(os.path.dirname(path))
-    return subdirname + "/" + os.path.basename(path)
+    filepath = subdirname + "/" + os.path.basename(path)
+    return filepath.replace("/", "/\n") if newline else filepath
 
 
 def add_edge_with_weight(graph,pair,weight=1) :
@@ -92,8 +93,8 @@ def graph_edge_size(g):
     return [min(d['weight'] * 0.5,5) for (a,b,d) in g.edges(data=True)]
 
 
-def graph_label_name(g):
-    return dict([(n,short_name(n)) for (n,d) in g.nodes(data=True)])
+def graph_label_name(g, newline):
+    return dict([(n,short_name(n, newline)) for (n,d) in g.nodes(data=True)])
 
 
 def graph_node_size(g):
@@ -107,7 +108,10 @@ def graph_node_color(g):
 def hotgraph(df: pd.DataFrame, *,
              output_file_name=None,
              rank=70,
-             stop_retry=False
+             stop_retry=False,
+             k=0.6,
+             font_size=10,
+             newline=False
              ) -> None:
 
     commit_to_pattern = gen_commit_to_pattern(stop_retry)
@@ -125,12 +129,12 @@ def hotgraph(df: pd.DataFrame, *,
     set_partition_number(g)
 
     edge_width = graph_edge_size(g)
-    labels = graph_label_name(g)
+    labels = graph_label_name(g, newline)
     node_size = graph_node_size(g)
     node_color = graph_node_color(g)
 
     plt.figure(figsize=(16,9))
-    pos = nx.spring_layout(g, k=0.6, seed=2020)
+    pos = nx.spring_layout(g, k=k, seed=2020)
 
     nx.draw_networkx_nodes(
         g,
@@ -145,7 +149,7 @@ def hotgraph(df: pd.DataFrame, *,
         g,
         pos,
         labels=labels,
-        font_size=10,
+        font_size=font_size,
         font_color="#333",
         font_weight="bold")
 

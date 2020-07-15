@@ -128,7 +128,10 @@ def handle_hotgraph(args) -> None:
         epanded_df,
         output_file_name=args.output,
         rank=args.rank,
-        stop_retry=args.stop_retry)
+        stop_retry=args.stop_retry,
+        k=args.k,
+        font_size=args.font_size,
+        newline=args.newline)
 
 
 def pretty_print_hotspot(df) -> None:
@@ -324,6 +327,22 @@ def add_hotgraph_option(parser):
     parser.add_argument(
         "-o", "--output",
         default=False)
+
+    # 反発力
+    parser.add_argument(
+        "-k",
+        type=float,
+        default=0.6)
+
+    parser.add_argument(
+        "--font-size",
+        type=int,
+        default=10)
+
+    # "/" で改行する場合に指定する
+    parser.add_argument(
+        "--newline",
+        action="store_true")
 
     add_file_filter_option(parser)
 
