@@ -40,7 +40,8 @@ def test_expander():
     df = gilot.core.from_dir("./", full=True)
     import json
     for v in df["files_json"].values:
-        assert (json.loads(str(v)))
+        obj = json.loads(str(v))
+        assert isinstance(obj, dict)
 
     edf = df.expand_files()
 
@@ -53,7 +54,7 @@ def test_expander_with_filter():
     df = gilot.core.from_dir("./", full=True)
     import json
     for v in df["files_json"].values:
-        assert (json.loads(str(v)))
+        assert isinstance(json.loads(str(v)),dict)
 
     edf = df.expand_files(is_match)
     odf = df.expand_files()

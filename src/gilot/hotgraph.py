@@ -10,7 +10,7 @@ import pandas as pd
 import timeout_decorator
 from pyfpgrowth import find_frequent_patterns
 
-from gilot.hotspot import hotspot
+from gilot.hotspot import get_hotspots
 
 logger = getLogger(__name__)
 
@@ -29,7 +29,7 @@ def search_threshold(df,rank=70) -> int:
     return vc.values[-1]
 
 
-def short_name(path, newline):
+def short_name(path:str, newline:bool) -> str:
     subdirname = os.path.basename(os.path.dirname(path))
     filepath = subdirname + "/" + os.path.basename(path)
     return filepath.replace("/", "/\n") if newline else filepath
@@ -72,7 +72,7 @@ def gen_commit_to_pattern(stop_retry: bool, timeout=10, max_retry=5, auto_increa
 
 
 def set_hotspot_point(g, df):
-    h_df = hotspot(df)
+    h_df = get_hotspots(df)
     for (n, d) in g.nodes(data=True):
         d["hotspot"] = h_df.loc[n, "hotspot"] if n in h_df.index else 0
 
@@ -105,14 +105,14 @@ def graph_node_color(g):
     return [d["partition_id"] for (n, d) in g.nodes(data=True)]
 
 
-def hotgraph(df: pd.DataFrame, *,
-             output_file_name=None,
-             rank=70,
-             stop_retry=False,
-             k=0.6,
-             font_size=10,
-             newline=False
-             ) -> None:
+def plot_hotgraph(df: pd.DataFrame, *,
+                  output_file_name=None,
+                  rank=70,
+                  stop_retry=False,
+                  k=0.6,
+                  font_size=10,
+                  newline=False
+                  ) -> None:
 
     commit_to_pattern = gen_commit_to_pattern(stop_retry)
     commit_list = all_commit_list(df)

@@ -11,7 +11,7 @@ def remove_outer_lines(df : pd.DataFrame) -> pd.DataFrame:
     return df[(outer_sub < df["lines"]) & (df["lines"] < outer_sup)].copy()
 
 
-def hotspot(df : pd.DataFrame) -> pd.DataFrame:
+def get_hotspots(df : pd.DataFrame) -> pd.DataFrame:
     df = remove_outer_lines(df)
     now = datetime.datetime.now()
     a_year = relativedelta(months=-12)

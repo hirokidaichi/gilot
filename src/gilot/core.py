@@ -111,7 +111,7 @@ class CommitRecord:
     def compose(cls, commit: git.Commit, full: bool = False) -> CommitRecord:
         if is_merge(commit):
             total = dict(insertions=0, deletions=0, lines=0, files=0)
-            file_json = dict() if full else None
+            file_json = json.dumps(dict()) if full else None
         else:
             total = commit.stats.total
             file_json = json.dumps(commit.stats.files) if full else None

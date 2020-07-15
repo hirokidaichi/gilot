@@ -1,4 +1,5 @@
 
+from gilot.core import Duration
 import argparse
 import json
 import logging
@@ -8,7 +9,7 @@ from logging import getLogger
 from typing import Callable, List, Optional
 
 import gilot
-from gilot.core import Duration
+
 logger = getLogger(__name__)
 
 parser = argparse.ArgumentParser(description="""
@@ -99,7 +100,7 @@ def handle_info(args) -> None:
 def handle_hotspot(args) -> None:
     init_logger(args)
     df = gilot.from_csvs(args.input)
-    result = gilot.hotspot(
+    result = gilot.get_hotspots(
         df.expand_files(
             compose_filter(
                 allow=args.allow_files,
@@ -124,7 +125,7 @@ def handle_hotgraph(args) -> None:
     df = gilot.from_csvs(args.input)
     is_match = compose_filter(allow=args.allow_files,deny=args.ignore_files)
     epanded_df = df.expand_files(is_match)
-    gilot.hotgraph(
+    gilot.plot_hotgraph(
         epanded_df,
         output_file_name=args.output,
         rank=args.rank,
