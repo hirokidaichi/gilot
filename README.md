@@ -50,8 +50,6 @@ or
 
 + ``hotspot``  command displays the files that are likely to contain bugs in ranking. We judge that the most recently modified files are likely to contain bugs.( like ``bugspots``)
 
-+ ``hotspot``  command displays the files that are likely to contain bugs in ranking. We judge that the most recently modified files are likely to contain bugs.( like ``bugspots``)
-
 + ``hotgraph`` command is able to visualize hidden file connections from a given CSV.
 
 ### gilot log (generate csv)
