@@ -108,7 +108,6 @@ def test_handlers(tempdir):
                                   "--output",
                                   "./temp/hoge.png"])
     assert hotgraph.handler
-    print(hotgraph)
 
     hotgraph.handler(hotgraph)
     hotgraph = parser.parse_args(["hotgraph",

@@ -5,7 +5,8 @@ import git
 import datetime
 import json
 import pandas as pd
-from typing import Type,List,Optional,Callable
+from git.objects import Commit
+from typing import Any, Iterator,Type,List,Optional,Callable,cast
 from dataclasses import dataclass,asdict,fields
 from dateutil.relativedelta import relativedelta
 from logging import getLogger
@@ -78,18 +79,16 @@ class Repo:
             branch: str) -> Repo:
         return cls(repo=git.Repo(repo_dir), branch=branch)
 
-    def commits(self, duration: Duration) -> List[git.Commit]:
-        return self.repo.iter_commits(
-            self.branch,
-            since=duration.since_text(),
-            until=duration.until_text())
+    def commits(self, duration: Duration) -> Iterator[Commit]:
+
+        return self.repo.iter_commits(self.branch,since=duration.since_text(),until=duration.until_text())
 
 
 def timestamp_to_date_text(timestamp: int) -> str:
     return datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
 
-def is_merge(commit: git.Commit) -> bool:
+def is_merge(commit: Commit) -> bool:
     ret = (1 < len(commit.parents))
     if ret :
         logger.info(f"merge commit should be treated as 0 {commit}")
@@ -108,7 +107,7 @@ class CommitRecord:
     files_json : Optional[str]
 
     @ classmethod
-    def compose(cls, commit: git.Commit, full: bool = False) -> CommitRecord:
+    def compose(cls, commit: Commit, full: bool = False) -> CommitRecord:
         if is_merge(commit):
             total = dict(insertions=0, deletions=0, lines=0, files=0)
             file_json = json.dumps(dict()) if full else None
@@ -177,7 +176,7 @@ class CommitDataFrame(pd.DataFrame):
     @ classmethod
     def from_dataframe(cls, df: pd.DataFrame) -> CommitDataFrame:
         if (len(df) == 0):
-            return cls.DF_NULL
+            return cast(CommitDataFrame,cls.DF_NULL)
         return cls.up(df)
 
     @classmethod
@@ -187,7 +186,7 @@ class CommitDataFrame(pd.DataFrame):
         s.set_index("date", inplace=True)
         s.sort_index()
         s = s.astype({"insertions":"int64","files":"int64","deletions":"int64","lines":"int64"})
-        return s
+        return CommitDataFrame(s)
 
     @classmethod
     def from_records(cls, commits: List[CommitRecord]) -> CommitDataFrame:
@@ -195,7 +194,7 @@ class CommitDataFrame(pd.DataFrame):
             [commit.to_dict() for commit in commits if commit is not None]))
 
     @ classmethod
-    def from_commits(cls,commits: List[git.Commit],*,full:bool = False) -> CommitDataFrame:
+    def from_commits(cls,commits: Iterator[Commit],*,full:bool = False) -> CommitDataFrame:
         return cls.from_records(
             [CommitRecord.compose(c, full=full) for c in commits])
 

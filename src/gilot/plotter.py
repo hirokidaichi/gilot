@@ -30,6 +30,9 @@ def lorenz(v):
 def _ts_to_string(ts):
     pattern = r"(\d+)([a-zA-Z])"
     r = re.match(pattern, ts)
+    if r == None:
+        return ""
+
     MAP = dict(W="Weeks", D="Days", M="Months", Y="Years")
     unit = MAP[r.group(2).upper()]
     count = r.group(1)
@@ -66,7 +69,7 @@ def _plot_hist(df, plt, ts):
     v = df.lines.values
     median = np.median(v)
     timeslot = _ts_to_string(ts)
-    sns.distplot(v)
+    sns.histplot(v)
     plt.xlim(0,)
 
     plt.title("Histgram of Code Output", fontsize=TITLE_SIZE)
@@ -92,7 +95,8 @@ def _plot_authors(df, plt):
     plt.plot(date, authors, marker=".", label="commit authors")
     plt.plot(date, np.ones(len(authors)) * mean, "--", label="mean")
     _plot_text(plt, f"mean = {mean :.1f} authors/timeslot")
-    plt.xlim(date[0], date[-1])
+    if len(date) > 1 :
+        plt.xlim(date[0], date[-1])
     plt.ylabel("Unique number of committed author")
     plt.legend()
 
@@ -109,7 +113,9 @@ def _plot_code(df, plt):
     _plot_text(
         plt,
         f"lines={total_change:,d} ,added={total_added:,d}, refactor={refactor:.2f}")
-    plt.xlim(date[0], date[-1])
+
+    if len(date) != 1:
+        plt.xlim(date[0], date[-1])
     plt.ylabel("Lines")
     plt.fill_between(
         date,
@@ -196,13 +202,16 @@ def info(df, timeslot="2W"):
 
     output = dict(lines=lines,added=added, refactor=1 - added / lines)
     # dic["lines"]["sum"] = rdf.sum().values
+    duration = {} if len(df.index.values) == 1 else {
+        "since":str(df.index.values[-1]),
+        "until":str(df.index.values[1]),
+    }
     return dict(
         gini=gini(rdf.lines.values),
         output=output,
-        since=str(df.index.values[-1]),
-        until=str(df.index.values[1]),
         timeslot=_ts_to_string(timeslot),
-        **dic
+        **dic,
+        **duration
     )
 
 
@@ -232,7 +241,7 @@ def _commit_ratio(df):
 
 def authors(df, output=False, top=None, name="--", only=None):
     sns.set_style("darkgrid")
-    plt.rcParams["font.family"] = "IPAGothic"
+    #plt.rcParams["font.family"] = "IPAGothic"
     result = _count_commits(df, top=top, only=only)
 
     fig = plt.figure(figsize=(16, 9))
