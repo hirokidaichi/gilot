@@ -15,7 +15,7 @@ logger = getLogger(__name__)
 parser = argparse.ArgumentParser(description="""
 gilot is a tool for analyzing and visualizing git logs
 
-1) simple way (1 liner using pipe)
+1) simple way (one liner using pipe)
 ! gilot log REPO_DIR | gilot plot
 
 2) 2-phase way

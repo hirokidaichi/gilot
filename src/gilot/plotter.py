@@ -38,7 +38,9 @@ def _ts_to_string(ts):
 
 def _in_sprint(df, timeslot="2W"):
     df_resampled = df.resample(timeslot).sum()
+
     df_resampled["authors"] = df["author"].resample(timeslot).nunique()
+
     df_resampled["addedlines"] = df_resampled["insertions"] - df_resampled["deletions"]
     return df_resampled
 

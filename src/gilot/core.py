@@ -183,9 +183,10 @@ class CommitDataFrame(pd.DataFrame):
     @classmethod
     def up(cls, df: pd.DataFrame) -> CommitDataFrame:
         s = cls(df.to_numpy(), index=df.index, columns=df.columns)
-        s["date"] = pd.to_datetime(s["date"])
+        s.date = pd.to_datetime(s.date)
         s.set_index("date", inplace=True)
         s.sort_index()
+        s = s.astype({"insertions":"int64","files":"int64","deletions":"int64","lines":"int64"})
         return s
 
     @classmethod
