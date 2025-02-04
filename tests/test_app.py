@@ -1,4 +1,3 @@
-
 import sys
 import os
 import shutil
@@ -77,7 +76,7 @@ def test_hotspot_option():
 
 def test_handlers(tempdir):
     # log をえて、出力
-    log = parser.parse_args(["log", "./", "--full", "--output", "temp/_test.csv"])
+    log = parser.parse_args(["log", "./", "--full", "--output", "temp/_test.csv", "--month", "60"])
     assert log.handler
     log.handler(log)
     plot = parser.parse_args(
@@ -88,7 +87,7 @@ def test_handlers(tempdir):
     info = parser.parse_args(
         ["info", "-i", "./temp/_test.csv", "--allow-files", "*.py"])
     assert info.handler
-    info.handler(plot)
+    info.handler(info)
 
     hotspot = parser.parse_args(
         ["hotspot", "-i", "./temp/_test.csv", "--allow-files", "*.py"])

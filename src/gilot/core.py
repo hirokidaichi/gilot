@@ -171,58 +171,104 @@ class CommitRecord:
 
 
 class CommitDataFrame(pd.DataFrame):
-    DF_NULL = pd.DataFrame([],columns=[i.name for i in fields(CommitRecord)])
+    _metadata = ['name']
+
+    @property
+    def _constructor(self):
+        return CommitDataFrame
+
+    @property
+    def _constructor_sliced(self):
+        return pd.Series
+
+    @property
+    def _constructor_expanddim(self):
+        return pd.DataFrame
+
+    DF_NULL = pd.DataFrame([], columns=[i.name for i in fields(CommitRecord)])
+    DF_NULL["date"] = pd.to_datetime([])
     DF_NULL.set_index("date", inplace=True)
 
-    @ classmethod
+    @classmethod
     def from_dataframe(cls, df: pd.DataFrame) -> CommitDataFrame:
-        if (len(df) == 0):
-            return cls.DF_NULL
+        if len(df) == 0:
+            return cls(cls.DF_NULL.copy())
         return cls.up(df)
 
     @classmethod
     def up(cls, df: pd.DataFrame) -> CommitDataFrame:
-        s = cls(df.to_numpy(), index=df.index, columns=df.columns)
-        s["date"] = pd.to_datetime(s["date"])
-        s.set_index("date", inplace=True)
+        s = cls(df)
+        if "date" in s.columns:
+            s["date"] = pd.to_datetime(s["date"])
+            s.set_index("date", inplace=True)
         s.sort_index()
         return s
 
     @classmethod
     def from_records(cls, commits: List[CommitRecord]) -> CommitDataFrame:
+        if not commits:
+            return cls(cls.DF_NULL.copy())
         return cls.from_dataframe(pd.DataFrame.from_records(
             [commit.to_dict() for commit in commits if commit is not None]))
 
-    @ classmethod
-    def from_commits(cls,commits: List[git.Commit],*,full:bool = False) -> CommitDataFrame:
+    @classmethod
+    def from_commits(cls, commits: List[git.Commit], *, full: bool = False) -> CommitDataFrame:
+        if not commits:
+            return cls(cls.DF_NULL.copy())
         return cls.from_records(
             [CommitRecord.compose(c, full=full) for c in commits])
 
-    def filter_files(self,is_match : Callable[[str],bool]) -> CommitDataFrame:
+    def expand_files(self, filter_func=None):
+        if len(self) == 0:
+            # 空のDataFrameの場合、最低限必要なカラムを持つDataFrameを返す
+            df = pd.DataFrame(columns=["date", "hexsha", "author", "file_name", "insertions", "deletions", "lines"])
+            df.set_index("date", inplace=True)
+            return CommitDataFrame(df)
+
+        records = []
+        for index, row in self.iterrows():
+            files = json.loads(str(row["files_json"]))
+            for file_name, file_info in files.items():
+                if filter_func and not filter_func(file_name):
+                    continue
+                record = {
+                    "date": index,
+                    "hexsha": row["hexsha"],
+                    "author": row["author"],
+                    "file_name": file_name,
+                    "insertions": file_info["insertions"],
+                    "deletions": file_info["deletions"],
+                    "lines": file_info["lines"]
+                }
+                records.append(record)
+        
+        if not records:
+            # フィルタリング後にレコードがない場合も同様の空のDataFrameを返す
+            df = pd.DataFrame(columns=["date", "hexsha", "author", "file_name", "insertions", "deletions", "lines"])
+            df.set_index("date", inplace=True)
+            return CommitDataFrame(df)
+        
+        df = pd.DataFrame.from_records(records)
+        df.set_index("date", inplace=True)
+        return CommitDataFrame(df)
+
+    def filter_files(self, is_match: Callable[[str], bool]) -> CommitDataFrame:
+        if len(self) == 0:
+            empty_df = pd.DataFrame([], columns=[i.name for i in fields(CommitRecord)])
+            empty_df.index = pd.DatetimeIndex([])
+            return CommitDataFrame(empty_df)
         records = [cr.filter_files(is_match) for cr in self.to_records()]
         filtered = [r for r in records if r is not None]
-
+        if not filtered:
+            empty_df = pd.DataFrame([], columns=[i.name for i in fields(CommitRecord)])
+            empty_df.index = pd.DatetimeIndex([])
+            return CommitDataFrame(empty_df)
         return CommitDataFrame.from_records(filtered)
 
     def to_records(self) -> List[CommitRecord]:
         def convert(index, row):
             return CommitRecord(date=str(index),**row.to_dict())
         return [convert(index, row) for index, row in self.iterrows()]
-
-    def expand_files(self, is_match: Optional[Callable[[str], bool]] = None) -> pd.DataFrame:
-        is_match = is_match if is_match else lambda x: True
-        dics = [e for c in self.to_records()
-                for e in c.expand()]
-        ft = FileTracker.create([e["file_name"] for e in dics])
-        for e in dics:
-            e["file_name"] = ft.newest_name(e["file_name"])
-
-        dics = [e for e in dics if is_match(e["file_name"])]
-        df = pd.DataFrame.from_records(dics)
-        df.date = pd.to_datetime(df.date)
-        df.set_index("date",inplace=True)
-        df.sort_index()
-        return df
 
 
 def from_csv(csvFileName: str) -> CommitDataFrame:
@@ -238,6 +284,6 @@ def from_dir(
         dirName: str = "./",*,
         branch: str = "origin/HEAD",
         duration: Duration = DEFAULT_DURATION,
-        full : bool = False) :
+        full : bool = False) -> CommitDataFrame:
     commits = Repo.from_dir(dirName, branch=branch).commits(duration)
     return CommitDataFrame.from_commits(commits,full=full)
