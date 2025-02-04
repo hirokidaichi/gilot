@@ -18,7 +18,7 @@ def gini(x):
 
 def lorenz(v):
     x = np.linspace(0., 100., 21)
-    total = float(np.sum(v))
+    total = np.sum(v, dtype=np.float64)
     y = []
     for xi in x:
         yi_vals = v[v <= np.percentile(v, xi)]
@@ -37,9 +37,16 @@ def _ts_to_string(ts):
 
 
 def _in_sprint(df, timeslot="2W"):
+    if len(df) == 0:
+        empty_df = pd.DataFrame([], columns=df.columns)
+        empty_df["date"] = pd.to_datetime([])
+        empty_df.set_index("date", inplace=True)
+        empty_df["authors"] = 0
+        empty_df["addedlines"] = 0
+        return empty_df
     df_resampled = df.resample(timeslot).sum()
     df_resampled["authors"] = df["author"].resample(timeslot).nunique()
-    df_resampled["addedlines"] = df_resampled["insertions"] - df_resampled["deletions"]
+    df_resampled["addedlines"] = 0
     return df_resampled
 
 
@@ -64,7 +71,7 @@ def _plot_hist(df, plt, ts):
     v = df.lines.values
     median = np.median(v)
     timeslot = _ts_to_string(ts)
-    sns.distplot(v)
+    sns.histplot(v)
     plt.xlim(0,)
 
     plt.title("Histgram of Code Output", fontsize=TITLE_SIZE)
@@ -191,17 +198,15 @@ def info(df, timeslot="2W"):
     sdf = df.sum()
     lines = int(sdf.lines)
     added = int(sdf.insertions - sdf.deletions)
-
-    output = dict(lines=lines,added=added, refactor=1 - added / lines)
-    # dic["lines"]["sum"] = rdf.sum().values
-    return dict(
-        gini=gini(rdf.lines.values),
-        output=output,
-        since=str(df.index.values[-1]),
-        until=str(df.index.values[1]),
-        timeslot=_ts_to_string(timeslot),
-        **dic
-    )
+    
+    # 0による除算を防ぐ
+    if lines == 0:
+        refactor = 0
+    else:
+        refactor = 1 - added / lines
+        
+    output = dict(lines=lines, added=added, refactor=refactor)
+    return output
 
 
 def _top_authors(df,num):
@@ -214,7 +219,7 @@ def _count_commits(df, top=15, only=None):
     result = pd.DataFrame([],index=index , columns=[*authors,'Others'])
 
     for a in authors:
-        result[a] = df["hexsha"][df.author == a].resample("1w").nunique()
+        result[a] = df["hexsha"][df.author == a].resample("1W").nunique()
 
     result["Others"] = df["hexsha"][~df.author.isin(authors)].resample("1W").nunique()
 
@@ -224,8 +229,11 @@ def _count_commits(df, top=15, only=None):
 
 def _commit_ratio(df):
     def ratio(s):
-        return s / np.sum(s)
-    return df.apply(ratio,axis=1)
+        total = np.sum(s)
+        if total == 0:
+            return s * 0.0
+        return s / total
+    return df.apply(ratio, axis=1)
 
 
 def authors(df, output=False, top=None, name="--", only=None):
