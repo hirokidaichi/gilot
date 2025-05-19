@@ -18,7 +18,7 @@ def gini(x):
 
 def lorenz(v):
     x = np.linspace(0., 100., 21)
-    total = float(np.sum(v))
+    total = np.sum(v, dtype=np.float64)
     y = []
     for xi in x:
         yi_vals = v[v <= np.percentile(v, xi)]
@@ -40,6 +40,13 @@ def _ts_to_string(ts):
 
 
 def _in_sprint(df, timeslot="2W"):
+    if len(df) == 0:
+        empty_df = pd.DataFrame([], columns=df.columns)
+        empty_df["date"] = pd.to_datetime([])
+        empty_df.set_index("date", inplace=True)
+        empty_df["authors"] = 0
+        empty_df["addedlines"] = 0
+        return empty_df
     df_resampled = df.resample(timeslot).sum()
 
     df_resampled["authors"] = df["author"].resample(timeslot).nunique()
@@ -69,7 +76,8 @@ def _plot_hist(df, plt, ts):
     v = df.lines.values
     median = np.median(v)
     timeslot = _ts_to_string(ts)
-    sns.histplot(v)
+    # 非推奨API回避: pandas+matplotlibでヒストグラム描画
+    plt.hist(v, bins='auto', color='C0', alpha=0.7, edgecolor='black')
     plt.xlim(0,)
 
     plt.title("Histgram of Code Output", fontsize=TITLE_SIZE)
@@ -199,20 +207,49 @@ def info(df, timeslot="2W"):
     sdf = df.sum()
     lines = int(sdf.lines)
     added = int(sdf.insertions - sdf.deletions)
+    # 0による除算を防ぐ
+    if lines == 0:
+        refactor = 0
+    else:
+        refactor = 1 - added / lines
 
-    output = dict(lines=lines,added=added, refactor=1 - added / lines)
-    # dic["lines"]["sum"] = rdf.sum().values
-    duration = {} if len(df.index.values) == 1 else {
-        "since":str(df.index.values[-1]),
-        "until":str(df.index.values[1]),
-    }
-    return dict(
-        gini=gini(rdf.lines.values),
-        output=output,
-        timeslot=_ts_to_string(timeslot),
-        **dic,
-        **duration
+    # 期間情報
+    if len(df) > 0 and hasattr(df.index, 'min'):
+        since = str(df.index.min())
+        until = str(df.index.max())
+    else:
+        since = ""
+        until = ""
+
+    # gini計算
+    gini_value = float(gini(rdf.lines.values)) if len(rdf) > 0 and hasattr(rdf, 'lines') else 0.0
+
+    # timeslot文字列
+    timeslot_str = _ts_to_string(timeslot)
+
+    # 詳細な統計情報
+    stats = {}
+    for key in ['insertions', 'deletions', 'lines', 'files', 'authors', 'addedlines']:
+        if key in dic:
+            stats[key] = {
+                'mean': float(dic[key].get('mean', 0)),
+                'std': float(dic[key].get('std', 0)),
+                'min': float(dic[key].get('min', 0)),
+                '25%': float(dic[key].get('25%', 0)),
+                '50%': float(dic[key].get('50%', 0)),
+                '75%': float(dic[key].get('75%', 0)),
+                'max': float(dic[key].get('max', 0)),
+            }
+
+    output = dict(
+        gini=gini_value,
+        output=dict(lines=lines, added=added, refactor=refactor),
+        since=since,
+        until=until,
+        timeslot=timeslot_str,
+        **stats
     )
+    return output
 
 
 def _top_authors(df,num):
@@ -225,7 +262,7 @@ def _count_commits(df, top=15, only=None):
     result = pd.DataFrame([],index=index , columns=[*authors,'Others'])
 
     for a in authors:
-        result[a] = df["hexsha"][df.author == a].resample("1w").nunique()
+        result[a] = df["hexsha"][df.author == a].resample("1W").nunique()
 
     result["Others"] = df["hexsha"][~df.author.isin(authors)].resample("1W").nunique()
 
@@ -235,8 +272,11 @@ def _count_commits(df, top=15, only=None):
 
 def _commit_ratio(df):
     def ratio(s):
-        return s / np.sum(s)
-    return df.apply(ratio,axis=1)
+        total = np.sum(s)
+        if total == 0:
+            return s * 0.0
+        return s / total
+    return df.apply(ratio, axis=1)
 
 
 def authors(df, output=False, top=None, name="--", only=None):

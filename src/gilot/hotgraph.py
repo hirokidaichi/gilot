@@ -16,9 +16,7 @@ logger = getLogger(__name__)
 
 
 def all_commit_list(df: pd.DataFrame) -> List[List[str]]:
-    def by_commit(c):
-        return c["file_name"].tolist()
-    return df.groupby("hexsha").apply(by_commit).tolist()
+    return df.groupby("hexsha").agg({"file_name": list})["file_name"].tolist()
 
 
 def search_threshold(df,rank=70) -> int:

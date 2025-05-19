@@ -1,4 +1,3 @@
-
 from gilot.core import Duration
 import argparse
 import json
@@ -85,15 +84,34 @@ def handle_plot(args) -> None:
     df = gilot.from_csvs(args.input)
     if (args.allow_files or args.ignore_files):
         df = df.filter_files(compose_filter(allow=args.allow_files,deny=args.ignore_files))
+    if len(df) == 0:
+        logger.warning("No data to plot")
+        return
     gilot.plot(df, output=args.output, name=args.name, timeslot=args.timeslot)
 
 
-def handle_info(args) -> None:
+def _load_df(args):
     init_logger(args)
     df = gilot.from_csvs(args.input)
     if (args.allow_files or args.ignore_files):
-        df = df.filter_files(compose_filter(allow=args.allow_files,deny=args.ignore_files))
+        df = df.filter_files(compose_filter(allow=args.allow_files, deny=args.ignore_files))
+    return df
 
+
+def handle_info(args) -> None:
+    df = _load_df(args)
+    if len(df) == 0:
+        logger.warning("No data to analyze")
+        print(json.dumps({
+            "lines": 0,
+            "added": 0,
+            "refactor": 0,
+            "gini": 0,
+            "since": "",
+            "until": "",
+            "timeslot": "2W"
+        }, indent=4, sort_keys=False))
+        return
     print(json.dumps(gilot.info(df), indent=4, sort_keys=False))
 
 

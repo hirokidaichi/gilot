@@ -1,4 +1,3 @@
-
 import gilot.core
 import pytest
 import os
@@ -37,7 +36,7 @@ def test_commit_record(tempdir):
 
 
 def test_expander():
-    df = gilot.core.from_dir("./", full=True)
+    df = gilot.core.from_dir("./", full=True, duration=Duration.months(60))
     import json
     for v in df["files_json"].values:
         obj = json.loads(str(v))
@@ -51,7 +50,7 @@ def test_expander():
 def test_expander_with_filter():
     def is_match(file_name):
         return fnmatch(file_name,"*app.py")
-    df = gilot.core.from_dir("./", full=True)
+    df = gilot.core.from_dir("./", full=True, duration=Duration.months(60))
     import json
     for v in df["files_json"].values:
         assert isinstance(json.loads(str(v)),dict)
