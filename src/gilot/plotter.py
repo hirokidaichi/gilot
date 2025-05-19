@@ -46,7 +46,7 @@ def _in_sprint(df, timeslot="2W"):
         return empty_df
     df_resampled = df.resample(timeslot).sum()
     df_resampled["authors"] = df["author"].resample(timeslot).nunique()
-    df_resampled["addedlines"] = 0
+    df_resampled["addedlines"] = df_resampled["insertions"] - df_resampled["deletions"]
     return df_resampled
 
 
@@ -199,14 +199,48 @@ def info(df, timeslot="2W"):
     sdf = df.sum()
     lines = int(sdf.lines)
     added = int(sdf.insertions - sdf.deletions)
-    
     # 0による除算を防ぐ
     if lines == 0:
         refactor = 0
     else:
         refactor = 1 - added / lines
-        
-    output = dict(lines=lines, added=added, refactor=refactor)
+
+    # 期間情報
+    if len(df) > 0 and hasattr(df.index, 'min'):
+        since = str(df.index.min())
+        until = str(df.index.max())
+    else:
+        since = ""
+        until = ""
+
+    # gini計算
+    gini_value = float(gini(rdf.lines.values)) if len(rdf) > 0 and hasattr(rdf, 'lines') else 0.0
+
+    # timeslot文字列
+    timeslot_str = _ts_to_string(timeslot)
+
+    # 詳細な統計情報
+    stats = {}
+    for key in ['insertions', 'deletions', 'lines', 'files', 'authors', 'addedlines']:
+        if key in dic:
+            stats[key] = {
+                'mean': float(dic[key].get('mean', 0)),
+                'std': float(dic[key].get('std', 0)),
+                'min': float(dic[key].get('min', 0)),
+                '25%': float(dic[key].get('25%', 0)),
+                '50%': float(dic[key].get('50%', 0)),
+                '75%': float(dic[key].get('75%', 0)),
+                'max': float(dic[key].get('max', 0)),
+            }
+
+    output = dict(
+        gini=gini_value,
+        output=dict(lines=lines, added=added, refactor=refactor),
+        since=since,
+        until=until,
+        timeslot=timeslot_str,
+        **stats
+    )
     return output
 
 
