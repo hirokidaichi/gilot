@@ -3,6 +3,8 @@ import os
 import shutil
 import pytest
 from gilot.app import parser,args_to_duration
+import json
+import subprocess
 
 
 @pytest.fixture
@@ -130,3 +132,96 @@ def test_handlers(tempdir):
                                 "./temp/hoge.png"])
     assert author.handler
     author.handler(author)
+
+
+def test_gilot_info_react_csv_matches_readme():
+    # sample/react.csvをinputにgilot infoを実行
+    csv_path = os.path.join(os.path.dirname(__file__), '../sample/react.csv')
+    # gilot info -i sample/react.csv をサブプロセスで実行
+    result = subprocess.run([
+        sys.executable, '-m', 'gilot.app', 'info', '-i', csv_path
+    ], capture_output=True, text=True)
+    assert result.returncode == 0, f"gilot info failed: {result.stderr}"
+    output = json.loads(result.stdout)
+
+    # READMEの期待値
+    expected = {
+        "gini": 0.41398343573957913,
+        "output": {
+            "lines": 230004,
+            "added": 66676,
+            "refactor": 0.7101093894019235
+        },
+        "since": "2020-01-02 00:58:47",
+        "until": "2020-06-19 10:18:56",
+        "timeslot": "2 Weeks",
+        "insertions": {
+            "mean": 11410.76923076923,
+            "std": 10912.175548088828,
+            "min": 471.0,
+            "25%": 3723.0,
+            "50%": 7371.0,
+            "75%": 17712.0,
+            "max": 39681.0
+        },
+        "deletions": {
+            "mean": 6281.846153846154,
+            "std": 4380.664938989549,
+            "min": 181.0,
+            "25%": 3466.0,
+            "50%": 5009.0,
+            "75%": 9850.0,
+            "max": 13477.0
+        },
+        "lines": {
+            "mean": 17692.615384615383,
+            "std": 14508.378898292196,
+            "min": 652.0,
+            "25%": 7369.0,
+            "50%": 10780.0,
+            "75%": 26834.0,
+            "max": 52914.0
+        },
+        "files": {
+            "mean": 361.61538461538464,
+            "std": 262.79635286077144,
+            "min": 35.0,
+            "25%": 179.0,
+            "50%": 359.0,
+            "75%": 447.0,
+            "max": 1062.0
+        },
+        "authors": {
+            "mean": 13.615384615384615,
+            "std": 4.8740548064635325,
+            "min": 3.0,
+            "25%": 10.0,
+            "50%": 15.0,
+            "75%": 16.0,
+            "max": 21.0
+        },
+        "addedlines": {
+            "mean": 5128.923076923077,
+            "std": 8126.4102003030675,
+            "min": -1337.0,
+            "25%": -88.0,
+            "50%": 2193.0,
+            "75%": 6065.0,
+            "max": 26448.0
+        }
+    }
+    # 数値は小数点誤差を許容して比較
+    def approx_equal(a, b, tol=1e-6):
+        if isinstance(a, float) and isinstance(b, float):
+            return abs(a - b) < tol
+        return a == b
+
+    def recursive_compare(d1, d2):
+        assert d1.keys() == d2.keys(), f"Keys mismatch: {d1.keys()} vs {d2.keys()}"
+        for k in d1:
+            if isinstance(d1[k], dict):
+                recursive_compare(d1[k], d2[k])
+            else:
+                assert approx_equal(d1[k], d2[k]), f"Mismatch at {k}: {d1[k]} vs {d2[k]}"
+
+    recursive_compare(expected, output)
