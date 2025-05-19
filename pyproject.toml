@@ -1,6 +1,6 @@
 [project]
 name = "gilot"
-version = "0.2.6"
+version = "0.2.7"
 description = "a git log visual analyzer"
 readme = "README.md"
 requires-python = ">=3.12"
