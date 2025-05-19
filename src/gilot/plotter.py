@@ -71,7 +71,8 @@ def _plot_hist(df, plt, ts):
     v = df.lines.values
     median = np.median(v)
     timeslot = _ts_to_string(ts)
-    sns.histplot(v)
+    # 非推奨API回避: pandas+matplotlibでヒストグラム描画
+    plt.hist(v, bins='auto', color='C0', alpha=0.7, edgecolor='black')
     plt.xlim(0,)
 
     plt.title("Histgram of Code Output", fontsize=TITLE_SIZE)
